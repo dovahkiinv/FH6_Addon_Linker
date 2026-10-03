@@ -15,4 +15,4 @@ na [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) i wersjonowaniu
 
 ### Fixed
 
-- Smoke test wpisu konsolowego, aby nie zakładał ścieżki do launchera zależnej od systemu operacyjnego.
+- Stabilizuje smoke testy CLI na Windows/Linux, sprawdzając wpis konsolowy przez metadane i wymuszając UTF-8 w procesach potomnych.

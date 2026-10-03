@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import importlib
+import os
 import subprocess
 import sys
 from importlib.metadata import distribution
@@ -31,6 +32,14 @@ PACKAGE_MODULES = (
 )
 
 
+def utf8_environment() -> dict[str, str]:
+    """Wymusza UTF-8 dla procesów potomnych niezależnie od systemu."""
+    environment = os.environ.copy()
+    environment["PYTHONUTF8"] = "1"
+    environment["PYTHONIOENCODING"] = "utf-8"
+    return environment
+
+
 def test_scaffold_modules_are_importable() -> None:
     """Wszystkie moduły szkieletu można zaimportować bez efektów ubocznych."""
     for module_name in PACKAGE_MODULES:
@@ -44,7 +53,8 @@ def test_module_entrypoint_displays_version() -> None:
         cwd=PROJECT_ROOT,
         check=False,
         capture_output=True,
-        text=True,
+        encoding="utf-8",
+        env=utf8_environment(),
     )
 
     assert result.returncode == 0
@@ -71,7 +81,8 @@ def test_cli_without_arguments_shows_help() -> None:
         cwd=PROJECT_ROOT,
         check=False,
         capture_output=True,
-        text=True,
+        encoding="utf-8",
+        env=utf8_environment(),
     )
 
     assert result.returncode == 0
