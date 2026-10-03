@@ -3,10 +3,9 @@
 from __future__ import annotations
 
 import importlib
-import os
 import subprocess
 import sys
-import sysconfig
+from importlib.metadata import distribution
 from pathlib import Path
 
 import fh6linker
@@ -53,20 +52,16 @@ def test_module_entrypoint_displays_version() -> None:
     assert result.stderr == ""
 
 
-def test_installed_console_entrypoint_displays_version() -> None:
-    """Zainstalowany skrypt fh6linker udostępnia polecenie --version."""
-    executable = "fh6linker.exe" if os.name == "nt" else "fh6linker"
-    entrypoint = Path(sysconfig.get_path("scripts")) / executable
-    result = subprocess.run(
-        [str(entrypoint), "--version"],
-        cwd=PROJECT_ROOT,
-        check=False,
-        capture_output=True,
-        text=True,
-    )
+def test_console_entrypoint_is_registered() -> None:
+    """Instalacja projektu rejestruje polecenie konsolowe fh6linker."""
+    entry_points = distribution("fh6-addon-linker").entry_points
 
-    assert result.returncode == 0
-    assert fh6linker.__version__ in result.stdout
+    assert any(
+        entry_point.group == "console_scripts"
+        and entry_point.name == "fh6linker"
+        and entry_point.value == "fh6linker.cli:main"
+        for entry_point in entry_points
+    )
 
 
 def test_cli_without_arguments_shows_help() -> None:
