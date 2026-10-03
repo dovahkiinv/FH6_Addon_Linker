@@ -11,7 +11,7 @@ Na Windowsie uruchom `FH6AddonLinker.pyw` dwuklikiem, aby otworzyć okno bez
 konsoli. Alternatywnie z katalogu repozytorium:
 
 ```powershell
-py -3.11 -m fh6linker gui
+py -3 -m fh6linker gui
 ```
 
 Przy pierwszym uruchomieniu kreator poprosi o folder gry i bibliotekę modów.

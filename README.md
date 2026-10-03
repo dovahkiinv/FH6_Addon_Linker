@@ -6,9 +6,9 @@ Windows spakowana do `.exe`; CLI jest interfejsem pomocniczym.** Projekt jest
 rozwijany etapami zgodnie ze specyfikacją w `PROMPT.md`.
 
 > **Stan: M2 — GUI desktopowe i rdzeń.** Zwykłe użycie jest dostępne przez
-> graficzne okno tkinter/ttk; CLI pozostaje narzędziem pomocniczym. Pakowany
-> Windows `.exe` pojawi się w M4. Przed każdą zmianą GUI pokazuje plan do
-> zatwierdzenia.
+> graficzne okno tkinter/ttk w ciemnym motywie; CLI pozostaje narzędziem
+> pomocniczym. Pakowany Windows `.exe` pojawi się w M4. Przed każdą zmianą GUI
+> pokazuje plan do zatwierdzenia.
 
 ## Ostrzeżenie — regulamin i bany
 
@@ -30,8 +30,8 @@ standardowej instalacji Pythona). Pobierz repozytorium i uruchom
 PowerShella:
 
 ```powershell
-py -3.11 -m pip install -e .
-py -3.11 -m fh6linker gui
+py -3 -m pip install -e .
+py -3 -m fh6linker gui
 ```
 
 Przy pierwszym uruchomieniu kreator poprosi o folder gry i bibliotekę modów.

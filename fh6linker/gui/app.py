@@ -184,13 +184,23 @@ class FH6LinkerApp:
         self.root.after(0, self._validate_startup)
 
     def _build_menu(self) -> None:
-        menu = self.tk.Menu(self.root)
-        application = self.tk.Menu(menu, tearoff=False)
+        menu_style = {
+            "tearoff": False,
+            "background": COLORS["surface"],
+            "foreground": COLORS["text"],
+            "activebackground": COLORS["selection"],
+            "activeforeground": COLORS["text"],
+            "disabledforeground": COLORS["muted"],
+            "borderwidth": 0,
+            "relief": "flat",
+        }
+        menu = self.tk.Menu(self.root, **menu_style)
+        application = self.tk.Menu(menu, **menu_style)
         application.add_command(label="Konfiguruj foldery…", command=self.open_setup)
         application.add_separator()
         application.add_command(label="Zamknij", command=self._on_close)
         menu.add_cascade(label="Aplikacja", menu=application)
-        help_menu = self.tk.Menu(menu, tearoff=False)
+        help_menu = self.tk.Menu(menu, **menu_style)
         help_menu.add_command(
             label="O aplikacji i ryzyku…",
             command=lambda: show_about(self.root, __version__),
@@ -231,14 +241,18 @@ class FH6LinkerApp:
                 "aplikacja nie gwarantuje bezpieczeństwa konta."
             ),
             style="Banner.TLabel",
-            wraplength=1150,
+            wraplength=930,
             justify="left",
         ).grid(row=1, column=0, sticky="ew", pady=(0, 9))
 
         self.paths_var = self.tk.StringVar(master=self.root, value="Nie skonfigurowano folderów")
-        ttk.Label(main, textvariable=self.paths_var, style="Path.TLabel").grid(
-            row=2, column=0, sticky="ew", pady=(0, 10)
-        )
+        ttk.Label(
+            main,
+            textvariable=self.paths_var,
+            style="Path.TLabel",
+            wraplength=930,
+            justify="left",
+        ).grid(row=2, column=0, sticky="ew", pady=(0, 10))
 
         primary = ttk.Frame(main, style="App.TFrame")
         primary.grid(row=3, column=0, sticky="ew", pady=(0, 6))
@@ -338,6 +352,15 @@ class FH6LinkerApp:
         self.tree.grid(row=0, column=0, sticky="nsew")
         y_scroll.grid(row=0, column=1, sticky="ns")
         x_scroll.grid(row=1, column=0, sticky="ew")
+        self.empty_state = ttk.Label(
+            tree_frame,
+            text="Trwa wczytywanie biblioteki…",
+            style="Empty.TLabel",
+            anchor="center",
+            justify="center",
+            wraplength=560,
+        )
+        self.empty_state.place(relx=0.5, rely=0.5, anchor="center")
         self.tree.bind("<Button-1>", self._on_tree_click)
         self.tree.bind("<Double-1>", self._on_tree_double_click)
         self.tree.bind("<space>", self._toggle_focused)
@@ -366,6 +389,9 @@ class FH6LinkerApp:
             font=("Consolas", 9),
             background=COLORS["surface"],
             foreground=COLORS["text"],
+            insertbackground=COLORS["text"],
+            selectbackground=COLORS["selection"],
+            selectforeground=COLORS["text"],
             state="disabled",
         )
         log_scroll = self.ttk.Scrollbar(log_frame, orient="vertical", command=self.log.yview)
@@ -550,10 +576,31 @@ class FH6LinkerApp:
             )
             self._visible_mod_ids.append(row.mod_id)
 
-        if self._visible_mod_ids and set(self._visible_mod_ids).issubset(self._desired_mod_ids):
-            self.visible_button.configure(text="Odznacz widoczne")
+        if not rows:
+            if self._rows:
+                empty_text = f"Brak wyników dla filtra „{query}”.\nWyczyść filtr, aby zobaczyć wszystkie mody."
+            else:
+                empty_text = (
+                    "Nie znaleziono modów w bibliotece.\n"
+                    "Każdy mod powinien zawierać folder media, mediapc lub mediaoverride.\n"
+                    "Sprawdź ścieżkę biblioteki i kliknij „Odśwież”."
+                )
+            self.empty_state.configure(text=empty_text)
+            self.empty_state.place(relx=0.5, rely=0.5, anchor="center")
         else:
-            self.visible_button.configure(text="Zaznacz widoczne")
+            self.empty_state.place_forget()
+
+        all_visible_selected = bool(self._visible_mod_ids) and set(
+            self._visible_mod_ids
+        ).issubset(self._desired_mod_ids)
+        self.visible_button.configure(
+            text="Odznacz widoczne" if all_visible_selected else "Zaznacz widoczne",
+            state="normal" if self._visible_mod_ids else "disabled",
+        )
+        has_visible_selection = bool(set(self._visible_mod_ids) & self._desired_mod_ids)
+        self.clear_selection_button.configure(
+            state="normal" if has_visible_selection else "disabled"
+        )
 
     def _row_sort_key(self, row: ModRow) -> Any:
         if self._sort_column == "active":
@@ -677,7 +724,7 @@ class FH6LinkerApp:
             wraplength=700,
             padx=9,
             pady=7,
-            background="#fffbe6",
+            background=COLORS["tooltip_bg"],
             foreground=COLORS["text"],
             relief="solid",
             borderwidth=1,

@@ -3,7 +3,7 @@
 ## Czy mogę już używać GUI?
 
 Tak. GUI tkinter/ttk jest dostępne od M2. Na Windowsie uruchom
-`FH6AddonLinker.pyw` dwuklikiem albo wpisz `py -3.11 -m fh6linker gui`.
+`FH6AddonLinker.pyw` dwuklikiem albo wpisz `py -3 -m fh6linker gui`.
 Samodzielny portable `.exe` jest planowany na M4.
 
 ## Czy muszę używać CLI?
@@ -14,10 +14,15 @@ może naruszać regulamin i skutkować banem. Nie testuj modów online.
 
 ## Co dzieje się z oryginalnymi plikami gry?
 
-Przed zastąpieniem pliku silnik kopiuje go do magazynu backupów i sprawdza hash.
-`disable` lub `restore --yes` usuwa tylko potwierdzony link, a następnie
-przywraca backup. Plik obcy lub zmieniony pozostaje bez zmian, a backupy nie są
-automatycznie kasowane. `restore` nie zastępuje weryfikacji plików w Xbox/Steam.
+Backup to kopia **konkretnego istniejącego pliku pod dokładnym targetem moda**,
+nie kopia całej gry. Jeśli target `mediapc/...` nie istniał, narzędzie może
+utworzyć tam katalogi i wdrożyć plik moda — nie ma wtedy oryginału do backupu;
+przy przywracaniu usuwa własny plik i puste katalogi, jeśli nadal należą do
+narzędzia. `media/...` i `mediapc/...` to różne ścieżki, więc backup nie przenosi
+pliku między nimi. `disable` lub `restore --yes` przywraca kopię tylko po
+potwierdzeniu własności targetu. Plik obcy lub zmieniony pozostaje bez zmian,
+a backupy nie są automatycznie kasowane. `restore` nie zastępuje weryfikacji
+plików w Xbox/Steam.
 
 ## Czy mogę zmienić foldery, gdy mody są wdrożone?
 

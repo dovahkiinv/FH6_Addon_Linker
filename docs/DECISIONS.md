@@ -12,14 +12,14 @@ konsekwencje.
 - **Konsekwencje:** wersja jest jawnie deweloperska; przed każdym wydaniem
   należy zsynchronizować oba pola i changelog.
 
-## ADR-0002: CI sprawdza oba systemy i dwie wersje Pythona
+## ADR-0002: CI sprawdza oba systemy i trzy wersje Pythona
 
 - **Kontekst:** projekt celuje w Windows oraz Linuksa/SteamOS, a specyfikacja
   wymaga Pythona 3.11+.
 - **Decyzja:** CI używa macierzy `ubuntu-latest` i `windows-latest` oraz Pythona
-  3.11 i 3.13. Na Linuksie dodatkowo importuje moduły GUI przez `xvfb-run`.
-- **Konsekwencje:** regresje zgodności są wykrywane przed scaleniem; test importu
-  nie tworzy okna.
+  3.11, 3.13 i 3.14. Na Linuksie testy GUI działają przez `xvfb-run`.
+- **Konsekwencje:** regresje zgodności są wykrywane przed scaleniem, a testy
+  tworzą widgety Tk pod Xvfb na Linuksie i natywnie na Windowsie.
 
 ## ADR-0003: układ backupów i ochrona historii
 

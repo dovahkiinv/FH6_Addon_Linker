@@ -84,8 +84,9 @@ class SetupWizard:
         self.window = tk.Toplevel(parent)
         self.window.title("Konfiguracja FH6 Addon Linker")
         self.window.transient(parent)
-        self.window.geometry("700x530")
-        self.window.minsize(620, 480)
+        self.window.configure(background=COLORS["background"])
+        self.window.geometry("720x570")
+        self.window.minsize(640, 520)
         self.window.grab_set()
         self.window.protocol("WM_DELETE_WINDOW", self._cancel)
         self.window.columnconfigure(0, weight=1)
@@ -137,8 +138,14 @@ class SetupWizard:
         )
         ttk.Label(
             form,
-            text="Puste pole użyje bezpiecznego katalogu aplikacji.",
+            text=(
+                "Kopia obejmuje istniejący plik dokładnie pod ścieżką docelową moda, nie całą grę "
+                "ani odpowiednik media/mediapc. Nowe pliki są usuwane przy przywracaniu, "
+                "jeśli nadal należą do aplikacji. Puste pole użyje katalogu aplikacji."
+            ),
             foreground=COLORS["muted"],
+            wraplength=430,
+            justify="left",
         ).grid(row=3, column=1, sticky="w", padx=(12, 0), pady=(0, 8))
 
         ttk.Label(form, text="Metoda linkowania").grid(row=4, column=0, sticky="w", pady=7)

@@ -8,16 +8,16 @@ na [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) i wersjonowaniu
 
 ### Added
 
-- GUI M2 tkinter/ttk: kreator konfiguracji, lista modów z filtrem i checkboxami,
-  planowanie przed zmianami, pasek postępu, dziennik i tryb przywracania backupów
-  przed grą online; konflikty i pliki obce są jasno oznaczane i pozostają bez zmian.
+- GUI M2 tkinter/ttk: ciemny motyw, czytelny stan pustej biblioteki, kreator
+  konfiguracji, lista modów z filtrem i checkboxami, plan przed zmianami, postęp,
+  dziennik i tryb przywracania backupów; konflikty pozostają bez zmian.
 - Zabezpieczenie kreatora przed zmianą ścieżek gry, biblioteki lub backupów,
   gdy istnieją wdrożone pliki, oraz blokowanie wyboru podczas pracy w tle.
 - Uruchamianie GUI przez `python -m fh6linker gui` i Windowsowy launcher
   `FH6AddonLinker.pyw`; CLI pozostaje pomocnicze, a `.exe` jest planowane na M4.
 - Szkielet pakietu Python `fh6linker` i uruchamialne polecenie `--version`.
 - Konfigurację projektu, zależności deweloperskie, testy smoke i CI dla Linuxa
-  oraz Windowsa na Pythonie 3.11 i 3.13.
+  oraz Windowsa na Pythonie 3.11, 3.13 i 3.14.
 - Początkową dokumentację projektu i ostrzeżeń bezpieczeństwa.
 - Rdzeń M1: walidację ścieżek i autodetekcję Steam/Xbox, skanowanie modów,
   bezpieczne hardlinki/symlinki/kopie, atomowy stan, journal WAL i lock.

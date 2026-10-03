@@ -14,6 +14,7 @@ from fh6linker.gui.app import (
     toggle_visible_selection,
 )
 from fh6linker.gui.dialogs import PlanDialog
+from fh6linker.gui.theme import COLORS, configure_theme
 from fh6linker.gui.wizard import SetupWizard, deployment_paths_changed
 from fh6linker.report import ModStatus, OperationReport, PlannedAction, StatusReport
 from fh6linker.scanner import scan_library
@@ -45,6 +46,47 @@ def test_view_model_combines_scan_status_and_missing_mods(fake_project: FakeProj
     assert str(fake_project.game_root / "media/Audio/FMODBanks/engine.bank") in engine_row.target_paths
     assert removed_row.category == "Brak w bibliotece"
     assert removed_row.broken_count == 2
+
+
+def test_dark_theme_configures_root_and_widget_styles() -> None:
+    class RootStub:
+        options: dict[str, str]
+
+        def configure(self, **options: str) -> None:
+            self.options = options
+
+    class StyleStub:
+        def __init__(self) -> None:
+            self.theme: str | None = None
+            self.options: dict[str, dict[str, object]] = {}
+            self.maps: dict[str, dict[str, object]] = {}
+
+        def theme_names(self) -> tuple[str, ...]:
+            return ("clam",)
+
+        def theme_use(self, theme: str) -> None:
+            self.theme = theme
+
+        def configure(self, name: str, **options: object) -> None:
+            self.options[name] = options
+
+        def map(self, name: str, **options: object) -> None:
+            self.maps[name] = options
+
+    root = RootStub()
+    style = StyleStub()
+
+    class TtkStub:
+        @staticmethod
+        def Style(_root: RootStub) -> StyleStub:
+            return style
+
+    configure_theme(root, TtkStub)
+
+    assert root.options["background"] == COLORS["background"]
+    assert style.theme == "clam"
+    assert style.options["Treeview"]["background"] == COLORS["surface"]
+    assert COLORS["background"] == "#0d1117"
 
 
 def test_active_deployments_protect_configuration_paths(tmp_path: Path) -> None:
@@ -145,6 +187,11 @@ def test_gui_windows_construct_when_tk_is_available(fake_project: FakeProject) -
     try:
         app = FH6LinkerApp(root, fake_project.engine)
         assert app.tree.winfo_exists()
+        assert app.empty_state.winfo_exists()
+        app._render_tree()
+        assert "mediaoverride" in app.empty_state.cget("text")
+        assert app.visible_button.instate(["disabled"])
+        assert app.clear_selection_button.instate(["disabled"])
 
         wizard = SetupWizard(root, fake_project.engine)
         assert wizard.window.winfo_exists()
@@ -164,6 +211,7 @@ def test_gui_windows_construct_when_tk_is_available(fake_project: FakeProject) -
         )
         dialog = PlanDialog(root, "Plan testowy", [report])
         assert dialog.apply_button.instate(["!disabled"])
+        assert dialog.text.cget("background") == COLORS["surface"]
         plan_text = dialog.text.get("1.0", "end")
         assert "Źródło: /mods/Engine Mod/media/example.bank" in plan_text
         assert "Cel: /game/media/example.bank" in plan_text

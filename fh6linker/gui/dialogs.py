@@ -6,6 +6,7 @@ from collections.abc import Sequence
 from typing import Any
 
 from ..report import OperationReport, PlannedAction
+from .theme import COLORS
 
 _ACTION_LABELS = {
     "create_link": "Utwórz link",
@@ -41,6 +42,7 @@ class PlanDialog:
         self.window = tk.Toplevel(parent)
         self.window.title(title)
         self.window.transient(parent)
+        self.window.configure(background=COLORS["background"])
         self.window.geometry("760x560")
         self.window.minsize(560, 380)
         self.window.grab_set()
@@ -84,8 +86,11 @@ class PlanDialog:
             padx=10,
             pady=8,
             font=("Consolas", 9),
-            background="#ffffff",
-            foreground="#172033",
+            background=COLORS["surface"],
+            foreground=COLORS["text"],
+            insertbackground=COLORS["text"],
+            selectbackground=COLORS["selection"],
+            selectforeground=COLORS["text"],
         )
         scrollbar = ttk.Scrollbar(content, orient="vertical", command=self.text.yview)
         self.text.configure(yscrollcommand=scrollbar.set)
@@ -105,7 +110,7 @@ class PlanDialog:
                     if errors or (conflicts and not allow_conflicts)
                     else "Brak zmian do wykonania."
                 ),
-                foreground="#a83131",
+                foreground=COLORS["danger"],
             ).pack(side="left", fill="x", expand=True)
         ttk.Button(buttons, text="Anuluj", command=self._cancel).pack(side="right")
         self.apply_button = ttk.Button(
