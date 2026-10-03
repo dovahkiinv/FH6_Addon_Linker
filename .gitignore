@@ -1,0 +1,29 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+.venv/
+venv/
+env/
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+
+# Build artefacts
+build/
+dist/
+*.spec.bak
+*.egg-info/
+
+# Local application data and backups
+state.json
+state.json.bak
+journal.jsonl
+backups/
+
+# Editors and operating systems
+.idea/
+.vscode/
+.DS_Store
+Thumbs.db
+desktop.ini
