@@ -60,7 +60,7 @@ class _PlannedFile:
 
 
 class LinkerEngine:
-    """Warstwa domenowa używana niezależnie przez CLI i przyszłe GUI."""
+    """Warstwa domenowa współdzielona przez CLI i GUI desktopowe."""
 
     def __init__(
         self,

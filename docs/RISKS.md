@@ -9,8 +9,11 @@
 Zgodnie z wymaganiami projektu oficjalne FAQ FH6 nie zezwala na modyfikowanie
 plików gry. Mody zastępujące pliki w `media` lub `mediapc` mogą skutkować banem
 w multiplayerze, Festival Playlist lub Eliminatorze. Oznaczenie `online_safe`
-nie jest certyfikatem ani gwarancją bezpieczeństwa. Przed grą online należy
-przywrócić pełną wanilię; docelowo służy do tego profil `WANILLA`.
+nie jest certyfikatem ani gwarancją bezpieczeństwa. Przed grą online użyj
+trybu przywracania backupów zarządzanych przez aplikację. Narzędzie pozostawia
+pliki obce lub zmienione bez zmian i nie potwierdza pełnej integralności gry;
+w razie potrzeby uruchom weryfikację plików w Xbox/Steam. To nadal nie gwarantuje
+bezpieczeństwa konta ani braku bana.
 
 ## Integralność i aktualizacje
 

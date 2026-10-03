@@ -1,21 +1,29 @@
 # FAQ
 
-## Czy mogę już uruchomić GUI albo `.exe`?
+## Czy mogę już używać GUI?
 
-Nie. Aktualny etap M1 udostępnia rdzeń i CLI. GUI tkinter powstanie w M2, a
-portable `.exe` w M4.
+Tak. GUI tkinter/ttk jest dostępne od M2. Na Windowsie uruchom
+`FH6AddonLinker.pyw` dwuklikiem albo wpisz `py -3.11 -m fh6linker gui`.
+Samodzielny portable `.exe` jest planowany na M4.
 
-## Czy mogę już włączyć moda z CLI?
+## Czy muszę używać CLI?
 
-Tak, ale najpierw użyj `fh6linker enable NAZWA --dry-run`, sprawdź plan i upewnij
-się, że gra jest zamknięta. Modyfikowanie plików może naruszać regulamin i
-skutkować banem. Nie testuj modów online.
+Nie. Zwykłe zarządzanie modami odbywa się w GUI. Przed zatwierdzeniem każdej
+zmiany okno pokazuje plan; przed wdrożeniem zamknij grę. Modyfikowanie plików
+może naruszać regulamin i skutkować banem. Nie testuj modów online.
 
 ## Co dzieje się z oryginalnymi plikami gry?
 
 Przed zastąpieniem pliku silnik kopiuje go do magazynu backupów i sprawdza hash.
 `disable` lub `restore --yes` usuwa tylko potwierdzony link, a następnie
-przywraca backup. Backupy nie są automatycznie kasowane.
+przywraca backup. Plik obcy lub zmieniony pozostaje bez zmian, a backupy nie są
+automatycznie kasowane. `restore` nie zastępuje weryfikacji plików w Xbox/Steam.
+
+## Czy mogę zmienić foldery, gdy mody są wdrożone?
+
+Nie. Kreator blokuje zmianę folderu gry, biblioteki lub backupów, jeśli w stanie
+aplikacji są wdrożone pliki. Najpierw przywróć zarządzane backupy, a potem zmień
+ścieżki. Zmiana samej metody linkowania dotyczy kolejnych wdrożeń.
 
 ## Co jeśli gra zaktualizuje plik?
 

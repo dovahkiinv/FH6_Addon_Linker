@@ -1,8 +1,9 @@
 # Architektura
 
-Aplikacja jest podzielona na CLI oraz wspólny rdzeń domenowy; GUI będzie
-wykorzystywać ten sam silnik bez własnej implementacji logiki plików. Runtime
-korzysta wyłącznie ze standardowej biblioteki Pythona.
+Aplikacja jest podzielona na GUI, CLI pomocnicze i wspólny rdzeń domenowy.
+Oba interfejsy korzystają z tego samego silnika, bez osobnej logiki operacji
+plikowych w widoku. Runtime korzysta wyłącznie ze standardowej biblioteki
+Pythona (GUI wymaga tkinter).
 
 ## Moduły
 
@@ -13,7 +14,8 @@ korzysta wyłącznie ze standardowej biblioteki Pythona.
 - `engine.py` — planowanie, deploy/disable/restore, status, repair i verify.
 - `report.py` — typowane raporty współdzielone przez CLI i GUI.
 - `cli.py` — parser, tekstowe/JSON raporty i kody wyjścia.
-- `importer.py` oraz `gui/` — kolejne etapy rozwoju.
+- `gui/` — kreator ustawień, główne okno, dialogi i styl M2.
+- `importer.py` — kolejne etapy importu paczek.
 
 ## Przepływ wdrożenia
 
@@ -28,9 +30,10 @@ korzysta wyłącznie ze standardowej biblioteki Pythona.
    nadpisania istniejącego pliku; obcy plik pozostaje nienaruszony i jest
    raportowany jako konflikt.
 
-## Stan M1
+## Stan M2
 
-Działa CLI i rdzeń `paths`, `scanner`, `linkops`, `state`, `engine`, `report`.
-Operacje enable/disable/restore mają plan, dziennik WAL i blokadę instancji.
-Na Linuksie i Windowsie testowane są rdzeń oraz CLI. GUI i `.exe` nie są jeszcze
-zaimplementowane.
+Działa rdzeń, CLI pomocnicze i GUI tkinter/ttk: kreator ścieżek, lista modów,
+filtr, wybór, plany operacji, postęp, dziennik i przywracanie backupów
+zarządzanych plików. Konflikty pozostają nietknięte. Operacje na plikach wykonuje
+wspólny silnik z journalingiem WAL i blokadą instancji.
+Pakowanie samodzielnego `.exe` pozostaje zakresem M4.

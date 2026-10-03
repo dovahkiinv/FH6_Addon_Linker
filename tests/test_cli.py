@@ -7,6 +7,7 @@ import subprocess
 import sys
 from pathlib import Path
 
+import pytest
 from conftest import FakeProject
 
 
@@ -84,6 +85,17 @@ def test_cli_set_dry_run_rejects_default_backup_inside_game(fake_project: FakePr
     assert result.returncode == 1
     assert "Magazyn kopii nie może pokrywać się" in result.stderr
     assert not config_dir.exists()
+
+
+def test_cli_gui_command_launches_desktop_app(monkeypatch: pytest.MonkeyPatch) -> None:
+    from fh6linker import cli
+    from fh6linker.gui import app
+
+    launched: list[bool] = []
+    monkeypatch.setattr(app, "main", lambda: launched.append(True) or 0)
+
+    assert cli.main(["gui"]) == 0
+    assert launched == [True]
 
 
 def test_cli_bad_game_path_explains_validation_error(

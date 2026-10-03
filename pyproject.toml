@@ -25,6 +25,7 @@ dependencies = []
 
 [project.scripts]
 fh6linker = "fh6linker.cli:main"
+fh6linker-gui = "fh6linker.gui.app:main"
 
 [tool.setuptools.packages.find]
 where = ["."]

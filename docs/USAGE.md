@@ -2,12 +2,30 @@
 
 ## Status
 
-M1 udostępnia rdzeń i CLI. GUI tkinter oraz plik Windows `.exe` pojawią się
-w kolejnych etapach; obecnie do uruchomienia wymagany jest Python 3.11+.
+M2 udostępnia GUI desktopowe tkinter/ttk i rdzeń. Do uruchomienia wymaga
+Pythona 3.11+ z tkinter. Samodzielny plik Windows `.exe` będzie pakowany w M4.
 
-## Instalacja developerska
+## Uruchomienie GUI
 
-Z katalogu repozytorium:
+Na Windowsie uruchom `FH6AddonLinker.pyw` dwuklikiem, aby otworzyć okno bez
+konsoli. Alternatywnie z katalogu repozytorium:
+
+```powershell
+py -3.11 -m fh6linker gui
+```
+
+Przy pierwszym uruchomieniu kreator poprosi o folder gry i bibliotekę modów.
+Możesz utworzyć nową bibliotekę bezpośrednio w kreatorze. Użyj przycisku
+**Odśwież**, aby przeskanować bibliotekę; zaznacz mody i wybierz
+**Zastosuj zaznaczone**. Każda modyfikująca operacja pokazuje plan, który trzeba
+zatwierdzić przed zmianą plików. **Tryb online · przywróć backupy** przywraca
+kopie oryginałów dla plików zarządzanych przez aplikację; pliki obce lub
+zmienione pozostają nietknięte. W razie potrzeby użyj weryfikacji plików Xbox/Steam.
+
+## CLI pomocnicze
+
+Polecenia tekstowe przydają się do diagnostyki lub automatyzacji, ale nie są
+wymagane do zwykłego używania GUI. Instalacja developerska i testy:
 
 ```console
 python -m pip install -e .
@@ -74,14 +92,16 @@ fh6linker verify "Engine Mod"
 fh6linker disable "Engine Mod"
 ```
 
-Aby przywrócić wanilię i wyłączyć wszystkie mody:
+Aby wyłączyć wszystkie zarządzane mody i przywrócić dostępne backupy:
 
 ```console
 fh6linker restore --yes
 ```
 
-`restore` wymaga jawnego `--yes`. Gdy gra działa, operacje modyfikujące są
-blokowane; zamknij FH6 przed wdrożeniem lub przywracaniem plików.
+`restore` wymaga jawnego `--yes`. Obce lub zmienione pliki pozostają bez zmian;
+w razie potrzeby zweryfikuj integralność gry w Xbox/Steam. Gdy gra działa,
+operacje modyfikujące są blokowane; zamknij FH6 przed wdrożeniem lub
+przywracaniem plików.
 
 ## Demo bez prawdziwej gry
 
@@ -97,4 +117,4 @@ buduje tymczasową atrapę gry, wykonuje pełny cykl i usuwa katalog tymczasowy.
   mod. Nie pozwala nadpisać pliku, którego własności nie da się potwierdzić.
 - Gdy aktualizacja gry zastąpi link, `status` powinien pokazać zerwanie; użyj
   `repair` po sprawdzeniu, że aktualny plik gry ma zostać nową kopią bazową.
-- `.exe`, kreator konfiguracji i GUI nie są jeszcze częścią M1.
+- GUI i kreator są dostępne od M2; samodzielny `.exe` pojawi się w M4.

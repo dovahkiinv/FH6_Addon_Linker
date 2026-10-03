@@ -1,4 +1,4 @@
-"""Interfejs wiersza poleceń; rdzeń współdzielony z przyszłym GUI."""
+"""Interfejs wiersza poleceń pomocniczy wobec GUI desktopowego."""
 
 from __future__ import annotations
 
@@ -22,7 +22,7 @@ from .state import AppConfig, StateError, StateStore
 
 
 def build_parser() -> argparse.ArgumentParser:
-    """Buduje parser dostępnych poleceń CLI milestone'u M1."""
+    """Buduje parser poleceń diagnostycznych i pomocniczych CLI."""
     parser = argparse.ArgumentParser(
         prog="fh6linker",
         description="Odwracalne zarządzanie modami Forza Horizon 6.",
@@ -85,7 +85,7 @@ def build_parser() -> argparse.ArgumentParser:
     restore_parser.add_argument("--force-while-running", action="store_true")
 
     commands.add_parser("doctor", help="sprawdza konfigurację i magazyn stanu")
-    commands.add_parser("gui", help="uruchamia GUI (dostępne od milestone'u M2)")
+    commands.add_parser("gui", help="uruchamia graficzne okno aplikacji")
     return parser
 
 
@@ -198,12 +198,10 @@ def main(argv: Sequence[str] | None = None) -> int:
         if args.command == "doctor":
             return _doctor(store)
         if args.command == "gui":
-            _write_error(
-                "GUI nie jest jeszcze dostępne w M1. Zostanie dodane w milestone M2; "
-                "na razie użyj poleceń CLI.\n"
-            )
-            return 1
-    except (PathValidationError, StateError, OSError, ValueError) as exc:
+            from .gui.app import main as gui_main
+
+            return gui_main()
+    except (PathValidationError, StateError, OSError, ValueError, RuntimeError) as exc:
         _write_error(f"Błąd: {exc}\n")
         return 1
 

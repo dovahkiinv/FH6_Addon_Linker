@@ -74,6 +74,18 @@ def test_console_entrypoint_is_registered() -> None:
     )
 
 
+def test_gui_console_entrypoint_is_registered() -> None:
+    """Instalacja projektu rejestruje launcher fh6linker-gui."""
+    entry_points = distribution("fh6-addon-linker").entry_points
+
+    assert any(
+        entry_point.group == "console_scripts"
+        and entry_point.name == "fh6linker-gui"
+        and entry_point.value == "fh6linker.gui.app:main"
+        for entry_point in entry_points
+    )
+
+
 def test_cli_without_arguments_shows_help() -> None:
     """Bez polecenia parser pokazuje użytkownikowi dostępne opcje."""
     result = subprocess.run(
