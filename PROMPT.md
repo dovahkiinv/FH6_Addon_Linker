@@ -2,7 +2,7 @@
 
 ## Jak używać
 
-Implementuj po jednym milestone na raz. Dla bieżącego zadania wykonaj wyłącznie M0, pokaż diff i wynik testów, a potem zatrzymaj się i czekaj na „kontynuuj M1”. Po każdym etapie aktualizuj `CHANGELOG.md`; nie rozpoczynaj kolejnego etapu bez zielonych testów.
+Implementuj po jednym milestone na raz, zgodnie z poleceniem użytkownika. Po każdym etapie zaktualizuj `CHANGELOG.md`, pokaż diff i wyniki testów, a potem zatrzymaj się i czekaj na zgodę przed rozpoczęciem następnego milestone'u.
 
 ## 0. Rola i cel
 
