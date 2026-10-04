@@ -11,6 +11,7 @@ from typing import Any
 
 ROOT_MARKERS = frozenset({"media", "mediapc", "mediaoverride"})
 IGNORED_NAMES = frozenset({".ds_store", "thumbs.db", "desktop.ini", "__macosx"})
+IGNORED_ARCHIVE_SUFFIXES = frozenset({".zip", ".rar", ".7z", ".7zip"})
 
 
 @dataclass(frozen=True)
@@ -415,8 +416,12 @@ def _is_readme(name: str) -> bool:
 
 
 def _is_ignored(name: str) -> bool:
-    """Rozpoznaje pliki systemowe i katalogi paczek macOS."""
-    return name.casefold() in IGNORED_NAMES
+    """Pomija systemowe śmieci i archiwa, bez zgłaszania ich jako ostrzeżeń."""
+    normalized = name.casefold()
+    return (
+        normalized in IGNORED_NAMES
+        or Path(normalized).suffix in IGNORED_ARCHIVE_SUFFIXES
+    )
 
 
 def _is_hidden(path: Path) -> bool:

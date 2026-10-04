@@ -99,10 +99,12 @@ D:\FH6Mods\
 ```
 
 Wszystko pod katalogiem `media` trafi do takiej samej ścieżki w grze. Pliki
-README — również umieszczone wewnątrz korzenia gry moda — są pomijane. Inne pliki
-i grafiki dokumentacyjne poza korzeniem gry są raportowane, ale nigdy nie są
-wdrażane. Biblioteka i gra powinny znajdować się na tym samym wolumenie, aby
-`auto` mogło użyć hardlinków bez dodatkowego miejsca.
+README — również umieszczone wewnątrz korzenia gry moda — są pomijane. Archiwa
+pozostawione w bibliotece są cicho ignorowane i nie są wdrażane; przed użyciem
+moda rozpakuj jego zawartość do folderu moda. Inne pliki i grafiki dokumentacyjne
+poza korzeniem gry są raportowane, ale nigdy nie są wdrażane. Biblioteka i gra
+powinny znajdować się na tym samym wolumenie, aby `auto` mogło użyć hardlinków
+bez dodatkowego miejsca.
 
 ## Bezpieczny przebieg
 

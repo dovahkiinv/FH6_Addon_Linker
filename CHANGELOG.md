@@ -8,6 +8,8 @@ na [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) i wersjonowaniu
 
 ### Added
 
+- Skaner biblioteki po cichu pomija pliki archiwów, aby nie trafiały do ostrzeżeń
+  ani listy plików wdrażanych do gry.
 - Odświeżony layout GUI: prawie czarna paleta, karty ścieżek i statystyk,
   czytelniejsze akcje i większa przestrzeń na listę modów.
 - Konfiguracja PyInstaller one-file/windowed, zależność budowania w

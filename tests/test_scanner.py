@@ -30,6 +30,32 @@ def test_finds_mod_nested_two_categories_and_ignores_readme(tmp_path: Path) -> N
     assert all(".hidden" not in file.target_rel for file in result.mods[0].files)
 
 
+def test_archives_are_silently_ignored_in_library_and_mod_payload(tmp_path: Path) -> None:
+    library = tmp_path / "library"
+    library.mkdir()
+    for name in ("package.zip", "download.RAR", "bundle.7z", "legacy.7zip"):
+        (library / name).write_bytes(b"archive")
+
+    mod = library / "Audio" / "Engine Mod"
+    payload = mod / "media" / "Audio" / "FMODBanks" / "engine.bank"
+    payload.parent.mkdir(parents=True)
+    payload.write_bytes(b"sound")
+    (mod / "readme.rar").write_bytes(b"archive beside mod")
+    (mod / "media" / "Audio" / "extras.zip").write_bytes(b"archive inside game root")
+
+    result = scan_library(library)
+
+    assert len(result.mods) == 1
+    assert [item.target_rel for item in result.mods[0].files] == [
+        "media/Audio/FMODBanks/engine.bank",
+    ]
+    messages = [
+        issue.message
+        for issue in (*result.issues, *result.mods[0].issues)
+    ]
+    assert not any(name in message.casefold() for message in messages for name in (".zip", ".rar", ".7z", ".7zip"))
+
+
 def test_metadata_controls_display_name_and_category(tmp_path: Path) -> None:
     mod = tmp_path / "library" / "Effects" / "Raw Folder"
     (mod / "mediapc" / "Textures").mkdir(parents=True)
