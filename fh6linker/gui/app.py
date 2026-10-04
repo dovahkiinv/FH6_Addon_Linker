@@ -21,11 +21,12 @@ from ..i18n import (
     normalize_language,
     save_language,
     translate,
+    translate_category_path,
 )
 from ..report import OperationReport, StatusReport
 from ..scanner import ScanResult
 from ..state import AppState, StateError
-from .dialogs import PlanDialog, show_about, show_mod_details
+from .dialogs import PlanDialog, show_about, show_mod_details, show_user_guide
 from .theme import COLORS, configure_theme
 
 
@@ -126,7 +127,11 @@ def build_mod_rows(
     return tuple(sorted(rows, key=lambda row: (row.category.casefold(), row.name.casefold())))
 
 
-def filter_mod_rows(rows: Iterable[ModRow], query: str) -> tuple[ModRow, ...]:
+def filter_mod_rows(
+    rows: Iterable[ModRow],
+    query: str,
+    language: str = "pl",
+) -> tuple[ModRow, ...]:
     """Filtruje mody po nazwie, kategorii, ID, statusie i ostrzeżeniach."""
     token = query.strip().casefold()
     if not token:
@@ -136,7 +141,14 @@ def filter_mod_rows(rows: Iterable[ModRow], query: str) -> tuple[ModRow, ...]:
         for row in rows
         if token
         in " ".join(
-            (row.name, row.category, row.mod_id, row.status, *row.warnings)
+            (
+                row.name,
+                row.category,
+                translate_category_path(row.category, language),
+                row.mod_id,
+                row.status,
+                *row.warnings,
+            )
         ).casefold()
     )
 
@@ -288,6 +300,11 @@ class FH6LinkerApp:
         application.add_command(label=self._t("menu_close"), command=self._on_close)
         menu.add_cascade(label=self._t("menu_application"), menu=application)
         help_menu = self.tk.Menu(menu, **menu_style)
+        help_menu.add_command(
+            label=self._t("menu_guide"),
+            command=lambda: show_user_guide(self.root, language=self.language),
+        )
+        help_menu.add_separator()
         help_menu.add_command(
             label=self._t("menu_about"),
             command=lambda: show_about(self.root, __version__, language=self.language),
@@ -474,7 +491,7 @@ class FH6LinkerApp:
         filter_bar = ttk.Frame(main, style="App.TFrame")
         filter_bar.grid(row=6, column=0, sticky="nsew")
         filter_bar.columnconfigure(0, weight=1)
-        filter_bar.rowconfigure(1, weight=1)
+        filter_bar.rowconfigure(2, weight=1)
         filter_row = ttk.Frame(filter_bar, style="App.TFrame")
         filter_row.grid(row=0, column=0, sticky="ew", pady=(0, 7))
         filter_row.columnconfigure(1, weight=1)
@@ -483,26 +500,57 @@ class FH6LinkerApp:
         )
         self.filter_var = self.tk.StringVar(master=self.root)
         self.filter_entry = ttk.Entry(filter_row, textvariable=self.filter_var)
-        self.filter_entry.grid(row=0, column=1, sticky="ew", padx=(0, 8))
+        self.filter_entry.grid(row=0, column=1, sticky="ew")
         self._selection_widgets.append(self.filter_entry)
         self.filter_entry.bind("<KeyRelease>", lambda _event: self._render_tree())
         self.filter_entry.bind("<Escape>", self._clear_filter)
+
+        selection_bar = ttk.Frame(filter_bar, style="App.TFrame")
+        selection_bar.grid(row=1, column=0, sticky="ew", pady=(0, 7))
+        selection_bar.columnconfigure(2, weight=1)
+        self.select_all_button = self._button(
+            selection_bar,
+            "select_all",
+            self.select_all,
+            style="Compact.TButton",
+            width=19,
+        )
+        self.select_all_button.grid(row=0, column=0, sticky="w", padx=(0, 6))
+        self.deselect_all_button = self._button(
+            selection_bar,
+            "deselect_all",
+            self.deselect_all,
+            style="Compact.TButton",
+            width=19,
+        )
+        self.deselect_all_button.grid(row=0, column=1, sticky="w")
         self.visible_button = self._button(
-            filter_row,
+            selection_bar,
             "select_visible",
             self.toggle_visible,
+            style="Compact.TButton",
+            width=18,
         )
-        self.visible_button.grid(row=0, column=2, sticky="e", padx=(0, 6))
+        self.visible_button.grid(row=0, column=3, sticky="e", padx=(0, 6))
         self.clear_selection_button = self._button(
-            filter_row,
+            selection_bar,
             "clear_selection",
             self.clear_visible,
+            style="Compact.TButton",
+            width=16,
         )
-        self.clear_selection_button.grid(row=0, column=3, sticky="e")
-        self._selection_widgets.extend((self.visible_button, self.clear_selection_button))
+        self.clear_selection_button.grid(row=0, column=4, sticky="e")
+        self._selection_widgets.extend(
+            (
+                self.select_all_button,
+                self.deselect_all_button,
+                self.visible_button,
+                self.clear_selection_button,
+            )
+        )
 
         tree_frame = ttk.Frame(filter_bar, style="Card.TFrame")
-        tree_frame.grid(row=1, column=0, sticky="nsew")
+        tree_frame.grid(row=2, column=0, sticky="nsew")
         tree_frame.columnconfigure(0, weight=1)
         tree_frame.rowconfigure(0, weight=1)
         columns = ("choice", "active", "files", "status", "warnings")
@@ -826,6 +874,9 @@ class FH6LinkerApp:
         for column, key in getattr(self, "_tree_heading_keys", {}).items():
             self.tree.heading(column, text=self._t(key))
 
+    def _display_category(self, category: str) -> str:
+        return translate_category_path(category, self.language)
+
     def _display_status(self, status: str) -> str:
         normalized = status.casefold()
         key_by_status = {
@@ -840,7 +891,7 @@ class FH6LinkerApp:
     def _render_tree(self) -> None:
         self.tree.delete(*self.tree.get_children(""))
         query = self.filter_var.get() if hasattr(self, "filter_var") else ""
-        rows = list(filter_mod_rows(self._rows, query))
+        rows = list(filter_mod_rows(self._rows, query, self.language))
         rows.sort(key=self._row_sort_key, reverse=self._sort_reverse)
         categories: dict[tuple[str, ...], str] = {}
         self._visible_mod_ids = []
@@ -852,7 +903,8 @@ class FH6LinkerApp:
             parent = ""
             prefix: list[str] = []
             for segment in segments:
-                prefix.append(segment.casefold())
+                display_segment = self._display_category(segment)
+                prefix.append(display_segment.casefold())
                 key = tuple(prefix)
                 category_iid = categories.get(key)
                 if category_iid is None:
@@ -862,7 +914,7 @@ class FH6LinkerApp:
                         parent,
                         "end",
                         iid=category_iid,
-                        text=segment,
+                        text=display_segment,
                         values=("", "", "", "", ""),
                         tags=("category",),
                         open=True,
@@ -905,6 +957,15 @@ class FH6LinkerApp:
         has_visible_selection = bool(set(self._visible_mod_ids) & self._desired_mod_ids)
         self.clear_selection_button.configure(
             state="normal" if has_visible_selection else "disabled"
+        )
+        has_unselected_valid_mods = bool(
+            self._available_mod_ids - self._desired_mod_ids
+        )
+        self.select_all_button.configure(
+            state="normal" if has_unselected_valid_mods else "disabled"
+        )
+        self.deselect_all_button.configure(
+            state="normal" if self._desired_mod_ids else "disabled"
         )
 
     def _row_sort_key(self, row: ModRow) -> Any:
@@ -975,6 +1036,16 @@ class FH6LinkerApp:
         self._desired_mod_ids.difference_update(self._visible_mod_ids)
         self._render_tree()
 
+    def select_all(self) -> None:
+        """Select every valid mod in the library, independent of the current filter."""
+        self._desired_mod_ids.update(self._available_mod_ids)
+        self._render_tree()
+
+    def deselect_all(self) -> None:
+        """Clear the desired selection for all mods without touching game files."""
+        self._desired_mod_ids.clear()
+        self._render_tree()
+
     def _show_details(self, mod_id: str) -> None:
         row = self._rows_by_id.get(mod_id)
         if row is None:
@@ -985,7 +1056,7 @@ class FH6LinkerApp:
             targets += "\n" + self._t("details_more_files", count=len(row.target_paths) - 20)
         details = (
             f"{self._t('details_id')}: {row.mod_id}\n"
-            f"{self._t('details_category')}: {row.category}\n"
+            f"{self._t('details_category')}: {self._display_category(row.category)}\n"
             f"{self._t('status_details')}: {self._display_status(row.status)}\n"
             f"{self._t('details_files')}: {row.file_count} "
             f"({self._t('details_broken')}: {row.broken_count})\n"

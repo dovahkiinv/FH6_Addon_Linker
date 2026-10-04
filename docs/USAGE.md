@@ -22,9 +22,11 @@ Możesz utworzyć nową bibliotekę bezpośrednio w kreatorze. Użyj przycisku
 pokazuje plan, który trzeba zatwierdzić przed zmianą plików. Przy każdej ścieżce
 użyj **Otwórz folder**, aby przejść do folderu gry, biblioteki lub kopii. Wybór
 **Polski / English** znajduje się w prawym górnym rogu i jest zapamiętywany.
-**Tryb online** przywraca kopie oryginałów plików zarządzanych przez aplikację;
-pliki obce lub zmienione pozostają nietknięte. W razie potrzeby użyj weryfikacji
-plików Xbox/Steam.
+Przy liście modów użyj **Zaznacz wszystkie / Odznacz wszystkie** albo kontrolek
+widocznych wyników; wybór sam w sobie nie zmienia plików. **Help / Pomoc → User
+guide / Instrukcja** otwiera wbudowany tutorial. **Tryb online** przywraca kopie
+oryginałów plików zarządzanych przez aplikację; pliki obce lub zmienione
+pozostają nietknięte. W razie potrzeby użyj weryfikacji plików Xbox/Steam.
 
 ## Samodzielny `.exe` dla Windows
 
@@ -100,6 +102,18 @@ D:\FH6Mods\
       reshade.ini
       README.md                (pomijany)
 ```
+
+### Kategorie modów
+
+Kategoria z `mod.json` ma pierwszeństwo. Jeśli jej nie ma, aplikacja bierze nazwę
+folderu nadrzędnego, więc możesz samodzielnie uporządkować bibliotekę np. tak:
+`D:\FH6Mods\Audio\Radio Mod\...` albo `D:\FH6Mods\Camera\FOV Mod\...`.
+Gdy mod leży bezpośrednio w bibliotece, skaner ostrożnie rozpoznaje tylko mocne
+sygnały w nazwie i ścieżkach plików (Audio, Camera, Interface, Map, Graphics).
+Pozostałe mody zostają w grupie **Bez kategorii**; w języku angielskim etykieta
+brzmi **Uncategorized**. Kategoryzacja nie zmienia ścieżek wdrożenia plików.
+Przeniesienie folderu już wdrożonego moda zmienia jego ID — najpierw go wyłącz,
+albo pozostaw folder na miejscu i skorzystaj z automatycznej kategorii.
 
 Wszystko pod katalogiem `media` trafi do takiej samej ścieżki w grze. Pliki
 README — również umieszczone wewnątrz korzenia gry moda — są pomijane. Archiwa

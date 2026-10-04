@@ -43,6 +43,11 @@ na [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) i wersjonowaniu
 - Automatyczne rozpoznawanie rozpakowanego FH6 Universal Radio po układzie
   `version.dll` + `fh6-radio/`, z mapowaniem plików do katalogu głównego gry i
   ostrzeżeniem o możliwym konflikcie loaderów DLL.
+- Globalne przyciski zaznaczania/odznaczania poprawnych modów oraz wbudowany,
+  polsko-angielski samouczek dostępny z menu Pomoc / Help.
+- Ostrożne kategoryzowanie modów na podstawie mocnych wskazówek w nazwie i
+  ścieżkach plików, z zachowaniem kategorii z `mod.json` i folderów nadrzędnych;
+  domyślna etykieta jest tłumaczona jako „Bez kategorii” / „Uncategorized”.
 - Testy rdzenia oraz demo end-to-end dla Linuxa i Windows.
 
 ### Fixed

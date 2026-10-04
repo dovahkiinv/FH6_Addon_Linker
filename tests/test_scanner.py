@@ -164,6 +164,60 @@ def test_incomplete_radio_like_folder_remains_unrecognized(tmp_path: Path) -> No
     assert {issue.code for issue in result.issues} == {"loose_file_ignored"}
 
 
+def test_conservative_category_inference_for_common_mod_types(tmp_path: Path) -> None:
+    library = tmp_path / "library"
+    cases = (
+        (
+            "All Forced Inductions plus 6db",
+            "media/Audio/FMODBanks/BOV_Kei_Large.assets.bank",
+            "Audio",
+        ),
+        (
+            "FH6 CameraFOV",
+            "mediapc/Camera/CameraSettings.ini",
+            "Camera",
+        ),
+        (
+            "Quick Menus",
+            "mediapc/UI/Resources/Anthem/Global_Transitions.xaml",
+            "Interface",
+        ),
+        (
+            "URH_Red",
+            "mediapc/UI/MapProfiles/MapIncludes/MapIncludeHudRoads.xml",
+            "Map",
+        ),
+    )
+    for name, target, _category in cases:
+        payload = library / name / target
+        payload.parent.mkdir(parents=True, exist_ok=True)
+        payload.write_bytes(b"payload")
+    quick_menu_audio = library / "Quick Menus" / "mediapc/Audio/UI4Audio.xml"
+    quick_menu_audio.parent.mkdir(parents=True, exist_ok=True)
+    quick_menu_audio.write_bytes(b"audio ui")
+
+    result = scan_library(library)
+
+    categories = {mod.name: mod.category for mod in result.mods}
+    assert categories == {name: category for name, _target, category in cases}
+    quick_menus = next(mod for mod in result.mods if mod.name == "Quick Menus")
+    assert {item.target_rel for item in quick_menus.files} == {
+        "mediapc/UI/Resources/Anthem/Global_Transitions.xaml",
+        "mediapc/Audio/UI4Audio.xml",
+    }
+
+
+def test_explicit_parent_folder_category_overrides_inference(tmp_path: Path) -> None:
+    library = tmp_path / "library"
+    payload = library / "Custom Category" / "Quick Menus" / "mediapc/UI/menus.xaml"
+    payload.parent.mkdir(parents=True)
+    payload.write_bytes(b"ui")
+
+    result = scan_library(library)
+
+    assert result.mods[0].category == "Custom Category"
+
+
 def test_readme_inside_game_root_is_never_deployed(tmp_path: Path) -> None:
     library = tmp_path / "library"
     mod_root = library / "Audio" / "Engine Mod" / "media"
@@ -196,17 +250,17 @@ def test_multiple_roots_are_reported_as_error(tmp_path: Path) -> None:
     assert result.errors
 
 
-def test_library_root_itself_can_be_a_mod(tmp_path: Path) -> None:
+def test_library_root_mod_without_category_clues_stays_uncategorized(tmp_path: Path) -> None:
     library = tmp_path / "Game Mod"
-    (library / "media" / "Audio").mkdir(parents=True)
-    (library / "media" / "Audio" / "engine.bank").write_bytes(b"sound")
+    (library / "media" / "Other").mkdir(parents=True)
+    (library / "media" / "Other" / "misc.bin").write_bytes(b"misc")
 
     result = scan_library(library)
 
     assert len(result.mods) == 1
     assert result.mods[0].mod_id == library.name
     assert result.mods[0].category == "Bez kategorii"
-    assert result.mods[0].files[0].target_rel == "media/Audio/engine.bank"
+    assert result.mods[0].files[0].target_rel == "media/Other/misc.bin"
 
 
 def test_scan_1000_mods_completes_within_three_seconds(tmp_path: Path) -> None:

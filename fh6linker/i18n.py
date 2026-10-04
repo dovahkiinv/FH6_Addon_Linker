@@ -19,6 +19,7 @@ _STRINGS: dict[str, dict[str, str]] = {
     "menu_setup": {"pl": "Konfiguruj foldery…", "en": "Configure folders…"},
     "menu_close": {"pl": "Zamknij", "en": "Exit"},
     "menu_help": {"pl": "Pomoc", "en": "Help"},
+    "menu_guide": {"pl": "Instrukcja / samouczek…", "en": "User guide / tutorial…"},
     "menu_about": {"pl": "O aplikacji i ryzyku…", "en": "About and safety…"},
     "window_title": {"pl": "FH6 Addon Linker", "en": "FH6 Addon Linker"},
     "header_subtitle": {
@@ -70,6 +71,52 @@ _STRINGS: dict[str, dict[str, str]] = {
     "select_visible": {"pl": "Zaznacz widoczne", "en": "Select visible"},
     "deselect_visible": {"pl": "Odznacz widoczne", "en": "Deselect visible"},
     "clear_selection": {"pl": "Wyczyść wybór", "en": "Clear selection"},
+    "select_all": {"pl": "Zaznacz wszystkie", "en": "Select all"},
+    "deselect_all": {"pl": "Odznacz wszystkie", "en": "Deselect all"},
+    "category_uncategorized": {"pl": "Bez kategorii", "en": "Uncategorized"},
+    "category_not_in_library": {"pl": "Brak w bibliotece", "en": "Not in library"},
+    "category_camera": {"pl": "Kamera", "en": "Camera"},
+    "category_interface": {"pl": "Interfejs", "en": "Interface"},
+    "category_graphics": {"pl": "Grafika", "en": "Graphics"},
+    "category_map": {"pl": "Mapa", "en": "Map"},
+    "guide_title": {"pl": "Instrukcja / samouczek", "en": "User guide / tutorial"},
+    "guide_intro": {
+        "pl": "FH6 Addon Linker wykrywa rozpakowane mody i pomaga wdrażać je w sposób odwracalny. Przed zmianą plików gry zawsze pokazuje plan.",
+        "en": "FH6 Addon Linker detects unpacked mods and helps deploy them reversibly. It always shows a plan before changing game files.",
+    },
+    "guide_setup": {
+        "pl": "1. Foldery — w menu Aplikacja → Konfiguruj foldery wskaż folder gry, bibliotekę modów (poza folderem gry) i magazyn kopii.",
+        "en": "1. Folders — open Application → Configure folders and choose the game folder, a mod library (outside the game folder), and a backup location.",
+    },
+    "guide_library": {
+        "pl": "2. Biblioteka — umieść każdy już rozpakowany mod we własnym folderze. Foldery kategorii, np. Audio/Radio, grupują mody. Nie przenoś wdrożonego moda bez wcześniejszego wyłączenia — zmienia to jego ID. Archiwa .zip, .rar, .7z i .7zip są cicho ignorowane; aplikacja ich nie rozpakowuje.",
+        "en": "2. Library — put each already-extracted mod in its own folder. Category folders such as Audio/Radio group mods. Disable a deployed mod before moving its folder; moving it changes its ID. .zip, .rar, .7z, and .7zip archives are silently ignored and are never extracted by the app.",
+    },
+    "guide_scan": {
+        "pl": "3. Skan — kliknij Odśwież. Kategorie mogą pochodzić z folderu nadrzędnego, mod.json albo ostrożnego rozpoznania zawartości. Niepewne mody pozostają Bez kategorii.",
+        "en": "3. Scan — click Refresh. Categories can come from the parent folder, mod.json, or conservative content hints. Uncertain mods remain Uncategorized.",
+    },
+    "guide_selection": {
+        "pl": "4. Wybór — Zaznacz wszystkie zaznacza prawidłowe wykryte mody, Odznacz wszystkie czyści wybór. Zaznacz widoczne i Wyczyść wybór działają na aktualny filtr. To tylko wybór checkboxów, nie to samo co Włącz wszystkie; pliki gry zmienia dopiero Zastosuj wybrane po zatwierdzeniu planu.",
+        "en": "4. Selection — Select all checks valid detected mods; Deselect all clears the checkboxes. Select visible and Clear selection affect the current filter. This only changes selection, not game files, and is different from Enable all. Apply selected changes files only after you approve its plan.",
+    },
+    "guide_apply": {
+        "pl": "5. Plan — kliknij Zastosuj wybrane (albo Włącz wszystkie / Wyłącz wszystkie). Sprawdź źródła, dokładne cele, konflikty i ostrzeżenia, a następnie zatwierdź plan. Anulowanie pozostawia pliki gry bez zmian.",
+        "en": "5. Plan — click Apply selected (or Enable all / Disable all). Review source files, exact targets, conflicts, and warnings, then approve the plan. Cancelling leaves game files unchanged.",
+    },
+    "guide_backups": {
+        "pl": "Kopie — backup powstaje tylko przy zastąpieniu istniejącego pliku pod dokładnym targetem. Nowe ścieżki nie mają kopii; przy wyłączeniu aplikacja usuwa własne nowe pliki.",
+        "en": "Backups — a backup is made only when replacing an existing file at the exact target. New paths have no backup; disabling the mod removes app-managed new files.",
+    },
+    "guide_restore": {
+        "pl": "6. Przywracanie — Wyłącz wszystkie usuwa wdrożone mody, a Przywróć oryginały / Tryb online przywraca dostępne kopie bazowe. Zamknij grę przed operacją.",
+        "en": "6. Restore — Disable all removes deployed mods; Restore originals / Online mode restores available baseline backups. Close the game before running an operation.",
+    },
+    "guide_safety": {
+        "pl": "Ostrzeżenie — modyfikowanie plików może naruszać regulamin gry online i grozić banem. Przed grą online przywróć oryginały i zweryfikuj pliki w Xbox/Steam.",
+        "en": "Safety — modifying files may violate online-game terms and result in a ban. Restore originals and verify files in Xbox/Steam before playing online.",
+    },
+    "guide_close": {"pl": "Zamknij", "en": "Close"},
     "tree_mod": {"pl": "Mod / kategoria", "en": "Mod / category"},
     "tree_choice": {"pl": "Wybór", "en": "Selected"},
     "tree_active": {"pl": "Aktywny", "en": "Active"},
@@ -81,8 +128,8 @@ _STRINGS: dict[str, dict[str, str]] = {
         "en": "No results for “{query}”.\nClear the filter to see all mods.",
     },
     "empty_library": {
-        "pl": "Nie znaleziono modów w bibliotece.\nKażdy mod powinien zawierać folder media, mediapc lub mediaoverride.\nSprawdź ścieżkę biblioteki i kliknij „Odśwież”.",
-        "en": "No mods found in the library.\nEach mod should contain a media, mediapc, or mediaoverride folder.\nCheck the library path and click “Refresh”.",
+        "pl": "Nie znaleziono modów w bibliotece.\nMod powinien zawierać media, mediapc, mediaoverride, mod.json albo rozpoznawalny układ FH6 Universal Radio.\nSprawdź ścieżkę biblioteki i kliknij „Odśwież”.",
+        "en": "No mods found in the library.\nA mod should contain media, mediapc, mediaoverride, mod.json, or the recognized FH6 Universal Radio layout.\nCheck the library path and click “Refresh”.",
     },
     "log_header": {"pl": "Dziennik operacji", "en": "Operation log"},
     "copy_log": {"pl": "Kopiuj log", "en": "Copy log"},
@@ -307,6 +354,38 @@ def translate(language: str, key: str, **values: Any) -> str:
         return template
 
 
+_CATEGORY_KEYS = {
+    "bez kategorii": "category_uncategorized",
+    "uncategorized": "category_uncategorized",
+    "brak w bibliotece": "category_not_in_library",
+    "not in library": "category_not_in_library",
+    "camera": "category_camera",
+    "kamera": "category_camera",
+    "interface": "category_interface",
+    "interfejs": "category_interface",
+    "ui": "category_interface",
+    "graphics": "category_graphics",
+    "grafika": "category_graphics",
+    "map": "category_map",
+    "maps": "category_map",
+    "mapa": "category_map",
+}
+
+
+def translate_category(category: str, language: str = DEFAULT_LANGUAGE) -> str:
+    """Localizes built-in category labels while preserving user-defined names."""
+    key = _CATEGORY_KEYS.get(category.strip().casefold())
+    return translate(language, key) if key else category
+
+
+def translate_category_path(category: str, language: str = DEFAULT_LANGUAGE) -> str:
+    """Localizes recognized labels in a nested category path."""
+    return "/".join(
+        translate_category(segment, language)
+        for segment in category.split("/")
+    )
+
+
 def load_language(config_dir: str | Path) -> str:
     """Ładuje preferowany język GUI, domyślnie Polski dla starszych instalacji."""
     path = Path(config_dir) / "ui_settings.json"
@@ -351,4 +430,6 @@ __all__ = [
     "normalize_language",
     "save_language",
     "translate",
+    "translate_category",
+    "translate_category_path",
 ]

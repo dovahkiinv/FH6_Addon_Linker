@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import json
 import os
+import re
 import stat
 from dataclasses import dataclass, field, replace
 from pathlib import Path, PurePosixPath
@@ -118,8 +119,9 @@ def scan_library(library_dir: str | Path) -> ScanResult:
 
     Katalogi bez korzenia moda są traktowane jako kategorie i skanowane głębiej.
     Rozpoznaje również dokładny układ FH6 Universal Radio, który instaluje
-    `version.dll` i `fh6-radio` obok pliku wykonywalnego gry. Dowiązania symboliczne
-    nie są śledzone, aby skan nie wychodził poza bibliotekę.
+    `version.dll` i `fh6-radio` obok pliku wykonywalnego gry. Przy pustej kategorii
+    ostrożnie wnioskuje kilka oczywistych typów moda z nazwy i ścieżek payloadu.
+    Dowiązania symboliczne nie są śledzone, aby skan nie wychodził poza bibliotekę.
     """
     library = Path(library_dir).expanduser().resolve()
     if not library.exists() or not library.is_dir():
@@ -237,8 +239,10 @@ def _build_mod(
     except ValueError:
         parent_category = ""
     category = metadata.category or (
-        parent_category if parent_category not in {"", "."} else "Bez kategorii"
+        parent_category if parent_category not in {"", "."} else ""
     )
+    if not category:
+        category = "Bez kategorii"
     display_name = metadata.display_name or name
 
     for child in children:
@@ -327,6 +331,9 @@ def _build_mod(
             )
         )
 
+    if not metadata.category and parent_category in {"", "."}:
+        category = _infer_category(f"{name} {display_name}", files) or "Bez kategorii"
+
     return Mod(
         mod_id=mod_id,
         name=name,
@@ -413,6 +420,56 @@ def _collect_files(
                     mtime=stat.st_mtime,
                 )
             )
+
+
+def _infer_category(name: str, files: list[ModFile]) -> str | None:
+    """Infer only categories supported by clear name or payload-path clues.
+
+    Explicit metadata and a category directory are resolved before this helper,
+    so uncertain mods retain the existing uncategorized fallback.
+    """
+    spaced_name = re.sub(r"([a-z])([A-Z])", r"\1 \2", name)
+    name_parts = set(re.findall(r"[a-z0-9]+", spaced_name.casefold()))
+    path_parts = {
+        part.casefold()
+        for mod_file in files
+        for part in PurePosixPath(mod_file.target_rel).parts
+    }
+    suffixes = {
+        PurePosixPath(mod_file.target_rel).suffix.casefold()
+        for mod_file in files
+    }
+
+    if (
+        name_parts & {"camera", "cameras", "fov"}
+        or path_parts & {"camera", "cameras"}
+    ):
+        return "Camera"
+    if (
+        name_parts & {"map", "maps", "mapprofile"}
+        or path_parts & {"map", "maps", "mapprofiles", "mapincludes"}
+    ):
+        return "Map"
+    if (
+        name_parts & {"menu", "menus", "interface", "hud", "ui"}
+        or path_parts & {"ui", "menus", "hud", "interface"}
+    ):
+        return "Interface"
+    if (
+        name_parts
+        & {"audio", "radio", "sound", "sounds", "induction", "inductions", "exhaust"}
+        or "audio" in path_parts
+        or suffixes & {".bank", ".wem", ".bnk", ".fsb", ".wav", ".mp3", ".ogg"}
+    ):
+        return "Audio"
+    if (
+        name_parts
+        & {"graphics", "graphic", "visual", "visuals", "texture", "textures"}
+        or path_parts & {"graphics", "visuals", "textures", "texture"}
+        or suffixes & {".dds", ".png", ".jpg", ".jpeg", ".tga", ".bmp", ".webp"}
+    ):
+        return "Graphics"
+    return None
 
 
 def _is_universal_radio_install(children: list[Path]) -> bool:

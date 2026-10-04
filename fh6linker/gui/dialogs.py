@@ -209,6 +209,71 @@ class PlanDialog:
         self.window.destroy()
 
 
+def show_user_guide(parent: Any, *, language: str = "pl") -> Any:
+    """Opens the built-in bilingual quick guide in a scrollable dialog."""
+    import tkinter as tk
+    from tkinter import ttk
+
+    window = tk.Toplevel(parent)
+    window.title(translate(language, "guide_title"))
+    window.transient(parent)
+    window.configure(background=COLORS["background"])
+    window.geometry("760x620")
+    window.minsize(560, 420)
+    window.columnconfigure(0, weight=1)
+    window.rowconfigure(0, weight=1)
+    window.protocol("WM_DELETE_WINDOW", window.destroy)
+
+    content = ttk.Frame(window, padding=(16, 14, 16, 10))
+    content.grid(row=0, column=0, sticky="nsew")
+    content.columnconfigure(0, weight=1)
+    content.rowconfigure(0, weight=1)
+    text = tk.Text(
+        content,
+        wrap="word",
+        relief="solid",
+        borderwidth=1,
+        padx=12,
+        pady=10,
+        font=("Segoe UI", 10),
+        background=COLORS["surface"],
+        foreground=COLORS["text"],
+        insertbackground=COLORS["text"],
+        selectbackground=COLORS["selection"],
+        selectforeground=COLORS["text"],
+    )
+    scrollbar = ttk.Scrollbar(content, orient="vertical", command=text.yview)
+    text.configure(yscrollcommand=scrollbar.set)
+    text.grid(row=0, column=0, sticky="nsew")
+    scrollbar.grid(row=0, column=1, sticky="ns")
+    text.tag_configure("intro", font=("Segoe UI Semibold", 11), spacing3=10)
+    text.insert("end", translate(language, "guide_intro") + "\n\n", "intro")
+    for key in (
+        "guide_setup",
+        "guide_library",
+        "guide_scan",
+        "guide_selection",
+        "guide_apply",
+        "guide_backups",
+        "guide_restore",
+        "guide_safety",
+    ):
+        text.insert("end", translate(language, key) + "\n\n")
+    text.configure(state="disabled")
+
+    footer = ttk.Frame(window, padding=(16, 0, 16, 14))
+    footer.grid(row=1, column=0, sticky="ew")
+    ttk.Button(
+        footer,
+        text=translate(language, "guide_close"),
+        command=window.destroy,
+    ).pack(side="right")
+    window.bind("<Escape>", lambda _event: window.destroy())
+    window.grab_set()
+    window.after(50, window.focus_force)
+    return window
+
+
 def show_about(parent: Any, version: str, *, language: str = "pl") -> None:
     """Pokazuje wersję i zastrzeżenia dotyczące modyfikowania gry."""
     from tkinter import messagebox

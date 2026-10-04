@@ -9,14 +9,21 @@ import pytest
 from conftest import FakeProject
 from fh6linker.gui.app import (
     FH6LinkerApp,
+    ModRow,
     build_mod_rows,
     filter_mod_rows,
     toggle_visible_selection,
 )
-from fh6linker.gui.dialogs import PlanDialog
+from fh6linker.gui.dialogs import PlanDialog, show_user_guide
 from fh6linker.gui.theme import COLORS, configure_theme
 from fh6linker.gui.wizard import SetupWizard, deployment_paths_changed
-from fh6linker.i18n import load_language, normalize_language, save_language, translate
+from fh6linker.i18n import (
+    load_language,
+    normalize_language,
+    save_language,
+    translate,
+    translate_category_path,
+)
 from fh6linker.report import ModStatus, OperationReport, PlannedAction, StatusReport
 from fh6linker.scanner import scan_library
 from fh6linker.state import AppConfig
@@ -191,12 +198,22 @@ def test_gui_windows_construct_when_tk_is_available(fake_project: FakeProject) -
         assert app.tree.winfo_exists()
         assert app.empty_state.winfo_exists()
         assert app.enable_all_button.winfo_exists()
+        assert app.select_all_button.winfo_exists()
+        assert app.deselect_all_button.winfo_exists()
         assert app.language_combo.winfo_exists()
         assert len(app._folder_open_buttons) == 3
         app._set_language("en")
         assert app.language_var.get() == "English"
         assert app.enable_all_button.cget("text") == "Enable all"
+        assert app.select_all_button.cget("text") == "Select all"
+        assert app.deselect_all_button.cget("text") == "Deselect all"
         assert app._display_status("WŁĄCZONY") == "ENABLED"
+        assert app._display_category("Bez kategorii") == "Uncategorized"
+        help_menu = app._menu_objects[-1]
+        assert help_menu.entrycget(0, "label") == "User guide / tutorial…"
+        guide = show_user_guide(root, language="en")
+        assert guide.title() == "User guide / tutorial"
+        guide.destroy()
         app._set_language("pl")
         app._render_tree()
         assert "mediaoverride" in app.empty_state.cget("text")
@@ -235,6 +252,8 @@ def test_ui_language_can_be_saved_and_reloaded(tmp_path: Path) -> None:
 
     assert load_language(config_dir) == "pl"
     assert translate("en", "action_enable_all") == "Enable all"
+    assert translate("en", "menu_guide") == "User guide / tutorial…"
+    assert translate("en", "category_uncategorized") == "Uncategorized"
     assert normalize_language("English") == "en"
     assert normalize_language("unknown") == "pl"
 
@@ -242,6 +261,39 @@ def test_ui_language_can_be_saved_and_reloaded(tmp_path: Path) -> None:
     assert load_language(config_dir) == "en"
     save_language(config_dir, "Polski")
     assert load_language(config_dir) == "pl"
+
+
+def test_category_labels_and_filters_follow_gui_language() -> None:
+    row = ModRow(
+        mod_id="Unknown Mod",
+        name="Unknown Mod",
+        category="Bez kategorii",
+        status="wyłączony",
+        file_count=1,
+    )
+
+    assert translate_category_path("Bez kategorii", "en") == "Uncategorized"
+    assert translate_category_path("Camera/Interface", "pl") == "Kamera/Interfejs"
+    assert filter_mod_rows((row,), "uncategorized", "en") == (row,)
+    assert filter_mod_rows((row,), "bez kategorii", "en") == (row,)
+
+
+def test_global_selection_changes_desired_ids_without_touching_game_files() -> None:
+    app = object.__new__(FH6LinkerApp)
+    app._available_mod_ids = {"Audio/Radio", "Camera/FOV"}
+    app._desired_mod_ids = {"Removed/Active Mod"}
+    renders: list[bool] = []
+    app._render_tree = lambda: renders.append(True)
+
+    app.select_all()
+    assert app._desired_mod_ids == {
+        "Audio/Radio",
+        "Camera/FOV",
+        "Removed/Active Mod",
+    }
+    app.deselect_all()
+    assert app._desired_mod_ids == set()
+    assert len(renders) == 2
 
 
 def test_enable_all_plans_every_valid_disabled_mod_only() -> None:
