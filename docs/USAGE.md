@@ -2,8 +2,9 @@
 
 ## Status
 
-M2 udostępnia GUI desktopowe tkinter/ttk i rdzeń. Do uruchomienia wymaga
-Pythona 3.11+ z tkinter. Samodzielny plik Windows `.exe` będzie pakowany w M4.
+GUI tkinter/ttk i rdzeń są dostępne od M2. Do uruchomienia ze źródeł wymagają
+Pythona 3.11+ z tkinter. Repozytorium zawiera już konfigurację pakowania M4:
+Windowsowy plik `.exe` buduje się skryptem PowerShell opisanym niżej.
 
 ## Uruchomienie GUI
 
@@ -18,9 +19,45 @@ Przy pierwszym uruchomieniu kreator poprosi o folder gry i bibliotekę modów.
 Możesz utworzyć nową bibliotekę bezpośrednio w kreatorze. Użyj przycisku
 **Odśwież**, aby przeskanować bibliotekę; zaznacz mody i wybierz
 **Zastosuj zaznaczone**. Każda modyfikująca operacja pokazuje plan, który trzeba
-zatwierdzić przed zmianą plików. **Tryb online · przywróć backupy** przywraca
-kopie oryginałów dla plików zarządzanych przez aplikację; pliki obce lub
-zmienione pozostają nietknięte. W razie potrzeby użyj weryfikacji plików Xbox/Steam.
+zatwierdzić przed zmianą plików. **Tryb online** przywraca kopie oryginałów
+plików zarządzanych przez aplikację; pliki obce lub zmienione pozostają
+nietknięte. W razie potrzeby użyj weryfikacji plików Xbox/Steam.
+
+## Samodzielny `.exe` dla Windows
+
+Zbuduj plik na Windowsie — PyInstaller nie cross-kompiluje programu Windows
+z Linuksa ani macOS. Wymagany jest Python 3.11+ 64-bit. W PowerShellu z katalogu
+repozytorium uruchom:
+
+```powershell
+py -3 -m venv .venv-build
+.\.venv-build\Scripts\python.exe -m pip install -r requirements-build.txt
+powershell -ExecutionPolicy Bypass -File .\scripts\build_exe.ps1
+```
+
+Plik `dist\FH6AddonLinker.exe` jest pojedynczym programem GUI z Pythonem i
+Tkinterem w środku; na komputerze docelowym nie trzeba instalować Pythona.
+Konfiguracja i kopie zapasowe są przechowywane w profilu użytkownika, poza
+folderem EXE. Budowanie można też uruchomić przez **Actions → Windows
+executable → Run workflow**; z Actions pobierz artefakt
+`FH6AddonLinker-windows-x64`.
+
+EXE nie jest podpisany certyfikatem code-signing, więc SmartScreen może pokazać
+ostrzeżenie przy pierwszym uruchomieniu.
+
+## Co robi kopia oryginału
+
+To nie jest kopia całej instalacji gry. Przed podmianą aplikacja kopiuje plik,
+który już istnieje dokładnie pod targetem moda, np. `media/Audio/example.bank`,
+do osobnego magazynu kopii. Przy wyłączeniu usuwa własny link i przywraca tę
+kopię. Nowy target nie ma oryginału do zapisania — przywracanie usuwa go, o ile
+nadal należy do aplikacji.
+
+`media/...` i `mediapc/...` są różnymi ścieżkami. Jeżeli target moda nie istnieje,
+ale ten sam plik jest w drugim drzewie, wdrożenie zostanie zatrzymane zamiast
+tworzyć równoległą ścieżkę. Popraw wtedy korzeń w strukturze moda i odśwież
+bibliotekę. Gdy pliki istnieją w obu drzewach, plan jasno ostrzega, że kopia
+obejmie wyłącznie dokładnie wybrany target.
 
 ## CLI pomocnicze
 

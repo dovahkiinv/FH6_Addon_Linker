@@ -320,6 +320,10 @@ class LinkerEngine:
                         )
                     source_digest = digest_file(source)
                     target = self._target_path(config.game_root, mod_file.target_rel)
+                    if self._media_layout_warning(config.game_root, mod_file.target_rel, report):
+                        # Nie tworzymy po cichu równoległego drzewa, gdy istnieje
+                        # dokładny oryginał pod odpowiednikiem media/mediapc.
+                        continue
                     existing_entry = (
                         current_mod_state.files.get(mod_file.target_rel)
                         if current_mod_state
@@ -569,6 +573,13 @@ class LinkerEngine:
                         created_dirs=tuple(missing_dirs),
                     )
                     planned.append(planned_file)
+                    action_notes: list[str] = []
+                    if backup_path is None:
+                        action_notes.append(
+                            "Brak oryginału pod dokładną ścieżką docelową — kopia zapasowa nie powstanie."
+                        )
+                    if config.method == "copy":
+                        action_notes.append("Użyta zostanie kopia pliku zamiast linku.")
                     report.actions.append(
                         PlannedAction(
                             action,
@@ -578,10 +589,9 @@ class LinkerEngine:
                             str(target),
                             str(backup_path) if backup_path else None,
                             source_digest.size,
-                            "Użyta zostanie kopia pliku." if config.method == "copy" else None,
+                            " ".join(action_notes) or None,
                         )
                     )
-                    self._media_layout_warning(config.game_root, mod_file.target_rel, report)
                 except (OSError, ValueError, LinkOperationError, PathValidationError) as exc:
                     report.errors.append(str(exc))
 
@@ -1486,24 +1496,51 @@ class LinkerEngine:
         game_root: Path,
         target_rel: str,
         report: OperationReport,
-    ) -> None:
+    ) -> bool:
+        """Ostrzega lub blokuje równoległy target przy niezgodności media/mediapc.
+
+        Zwraca ``True``, gdy w docelowym miejscu nie ma pliku, ale istnieje
+        dokładny odpowiednik w drugim drzewie. Kopia zapasowa obejmuje wyłącznie
+        ten sam target, dlatego w takiej sytuacji nie wolno tworzyć nowej ścieżki
+        i pozostawiać oryginału pod alternatywnym korzeniem.
+        """
         parts = PurePosixPath(target_rel).parts
         if len(parts) < 2:
-            return
-        if parts[0].casefold() == "media":
-            alternative = game_root.joinpath("mediapc", *parts[1:])
-            if alternative.exists():
-                report.warnings.append(
-                    f"Mod celuje w media/{PurePosixPath(*parts[1:]).as_posix()}, ale gra ma "
-                    f"{alternative}. Sprawdź, czy target powinien używać mediapc/."
-                )
-        elif parts[0].casefold() == "mediapc":
-            alternative = game_root.joinpath("media", *parts[1:])
-            if alternative.exists():
-                report.warnings.append(
-                    f"Mod celuje w mediapc/{PurePosixPath(*parts[1:]).as_posix()}, ale gra ma "
-                    f"{alternative}. Sprawdź, czy target powinien używać media/."
-                )
+            return False
+
+        marker = parts[0].casefold()
+        if marker == "media":
+            other_marker = "mediapc"
+        elif marker == "mediapc":
+            other_marker = "media"
+        else:
+            return False
+
+        target = game_root.joinpath(*parts)
+        alternative = game_root.joinpath(other_marker, *parts[1:])
+        if not alternative.is_file():
+            return False
+
+        target_description = f"{marker}/{PurePosixPath(*parts[1:]).as_posix()}"
+        other_description = f"{other_marker}/{PurePosixPath(*parts[1:]).as_posix()}"
+        if not target.exists() and not target.is_symlink():
+            report.errors.append(
+                f"Niezgodny układ {marker}/{other_marker}: mod celuje w {target_description}, "
+                f"ale oryginalny plik istnieje pod {alternative}. Nie tworzę równoległego "
+                f"{target_description}. Backup chroni tylko dokładną ścieżkę docelową — "
+                f"nie przenosi pliku z {other_description}. Popraw korzeń moda albo sprawdź "
+                "ręcznie strukturę instalacji gry."
+            )
+            return True
+
+        message = (
+            f"Mod celuje w {target_description}, ale gra ma również {alternative}. "
+            f"Sprawdź, czy target powinien używać {other_marker}/. Backup obejmie wyłącznie "
+            f"dokładną ścieżkę {target}; plik {alternative} pozostanie nietknięty."
+        )
+        if message not in report.warnings:
+            report.warnings.append(message)
+        return False
 
     def _append_scan_issues(self, scan: ScanResult, report: OperationReport | StatusReport) -> None:
         for issue in scan.issues:

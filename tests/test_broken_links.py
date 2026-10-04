@@ -17,6 +17,27 @@ def test_media_to_mediapc_mismatch_is_suggested(fake_project: FakeProject) -> No
 
     assert report.exit_code == 0
     assert any("powinien używać mediapc/" in warning for warning in report.warnings)
+    assert any("Backup obejmie wyłącznie dokładną ścieżkę" in warning for warning in report.warnings)
+
+
+def test_mismatched_root_does_not_create_parallel_tree_without_backup(
+    fake_project: FakeProject,
+) -> None:
+    target = fake_project.game_root / "media/Audio/FMODBanks/engine.bank"
+    alternate = fake_project.game_root / "mediapc/Audio/FMODBanks/engine.bank"
+    original = b"pc-specific vanilla"
+    target.unlink()
+    alternate.parent.mkdir(parents=True, exist_ok=True)
+    alternate.write_bytes(original)
+
+    report = fake_project.engine.enable(["Engine Mod"])
+
+    assert report.exit_code == 1
+    assert not target.exists()
+    assert alternate.read_bytes() == original
+    assert fake_project.store.load_state().mods == {}
+    assert any("Nie tworzę równoległego" in error for error in report.errors)
+    assert not fake_project.backup_dir.exists()
 
 
 def test_game_update_breaks_link_and_repair_updates_baseline(fake_project: FakeProject) -> None:

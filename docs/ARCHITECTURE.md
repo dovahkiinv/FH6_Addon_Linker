@@ -30,10 +30,16 @@ Pythona (GUI wymaga tkinter).
    nadpisania istniejącego pliku; obcy plik pozostaje nienaruszony i jest
    raportowany jako konflikt.
 
-## Stan M2
+## Stan M2 / pakowanie M4
 
 Działa rdzeń, CLI pomocnicze i GUI tkinter/ttk: kreator ścieżek, lista modów,
-filtr, wybór, plany operacji, postęp, dziennik i przywracanie backupów
-zarządzanych plików. Konflikty pozostają nietknięte. Operacje na plikach wykonuje
-wspólny silnik z journalingiem WAL i blokadą instancji.
-Pakowanie samodzielnego `.exe` pozostaje zakresem M4.
+filtr, wybór, plany operacji, postęp, dziennik i przywracanie kopii oryginałów
+zarządzanych plików. Konflikty pozostają nietknięte. Przy rozbieżności `media` /
+`mediapc` silnik nie tworzy równoległego targetu, jeśli dokładny oryginał leży
+pod drugim korzeniem. Operacje na plikach wykonuje wspólny silnik z journalingiem
+WAL i blokadą instancji.
+
+Konfiguracja PyInstaller (`packaging/FH6AddonLinker.spec`), skrypt PowerShell i
+workflow Windows budują samodzielny, jednoplikowy EXE bez konsoli. Budowanie
+musi odbywać się na Windowsie; podpis cyfrowy wydania nie jest jeszcze
+konfigurowany.

@@ -104,7 +104,7 @@ class SetupWizard:
             outer,
             text=(
                 "Wskaż folder instalacji FH6 i osobny katalog biblioteki. "
-                "Oryginalne pliki gry będą zabezpieczane w backupie przed podmianą."
+                "Przed podmianą aplikacja kopiuje oryginał pliku z dokładnej ścieżki docelowej."
             ),
             wraplength=640,
             justify="left",
@@ -129,7 +129,7 @@ class SetupWizard:
             row=1, column=2, sticky="ew", pady=7
         )
 
-        ttk.Label(form, text="Katalog backupów").grid(row=2, column=0, sticky="w", pady=7)
+        ttk.Label(form, text="Folder kopii oryginałów").grid(row=2, column=0, sticky="w", pady=7)
         ttk.Entry(form, textvariable=self.backup_var).grid(
             row=2, column=1, sticky="ew", padx=(12, 8), pady=7
         )
@@ -139,9 +139,11 @@ class SetupWizard:
         ttk.Label(
             form,
             text=(
-                "Kopia obejmuje istniejący plik dokładnie pod ścieżką docelową moda, nie całą grę "
-                "ani odpowiednik media/mediapc. Nowe pliki są usuwane przy przywracaniu, "
-                "jeśli nadal należą do aplikacji. Puste pole użyje katalogu aplikacji."
+                "Kopia obejmuje wyłącznie istniejący plik pod dokładną ścieżką moda — nie całą grę "
+                "ani odpowiednik media/mediapc. Gdy oryginał jest tylko pod drugim korzeniem, "
+                "aplikacja zatrzyma wdrożenie zamiast tworzyć równoległą ścieżkę. Nowe pliki są "
+                "usuwane przy przywracaniu, jeśli nadal należą do aplikacji. Puste pole użyje "
+                "domyślnego katalogu aplikacji."
             ),
             foreground=COLORS["muted"],
             wraplength=430,

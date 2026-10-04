@@ -13,9 +13,9 @@ _ACTION_LABELS = {
     "repair_link": "Napraw link",
     "force_replace": "Zastąp link innego moda",
     "already_enabled": "Już włączony",
-    "remove_link_restore_backup": "Usuń link i przywróć backup",
+    "remove_link_restore_backup": "Usuń link i przywróć oryginał",
     "remove_added_file": "Usuń dodany plik",
-    "restore_missing_target": "Przywróć brakujący plik",
+    "restore_missing_target": "Przywróć brakujący oryginał",
     "already_missing": "Plik już usunięty",
     "preserve_foreign_file": "Pozostaw obcy plik bez zmian",
     "already_disabled": "Już wyłączony",
@@ -69,10 +69,28 @@ class PlanDialog:
             text=f"Plan obejmuje {len(actions)} zmian w plikach.",
             font=("Segoe UI Semibold", 12),
         ).grid(row=0, column=0, sticky="w")
+        deployment_actions = [
+            action
+            for action in actions
+            if action.action in {"create_link", "repair_link", "force_replace"}
+        ]
+        if deployment_actions:
+            originals = sum(action.backup is not None for action in deployment_actions)
+            new_targets = len(deployment_actions) - originals
+            detail = (
+                f"Kopie istniejących oryginałów: {originals} · "
+                f"nowe ścieżki bez oryginału: {new_targets}."
+            )
+        else:
+            detail = "Przed wykonaniem sprawdź listę operacji i ewentualne ostrzeżenia."
+        ttk.Label(summary, text=detail, style="Subtitle.TLabel").grid(
+            row=1, column=0, sticky="w", pady=(4, 0)
+        )
         ttk.Label(
             summary,
             text="Nic nie zostanie zmienione, dopóki nie zatwierdzisz tego planu.",
-        ).grid(row=1, column=0, sticky="w", pady=(4, 0))
+            style="Subtitle.TLabel",
+        ).grid(row=2, column=0, sticky="w", pady=(2, 0))
 
         content = ttk.Frame(self.window, padding=(16, 0, 16, 12))
         content.grid(row=1, column=0, sticky="nsew")
@@ -152,7 +170,7 @@ class PlanDialog:
                 if action.target:
                     line += f"\n  Cel: {action.target}"
                 if action.backup:
-                    line += f"\n  Backup: {action.backup}"
+                    line += f"\n  Kopia oryginału: {action.backup}"
                 if action.note:
                     line += f"\n  {action.note}"
                 self.text.insert("end", line + "\n")

@@ -86,7 +86,8 @@ def test_dark_theme_configures_root_and_widget_styles() -> None:
     assert root.options["background"] == COLORS["background"]
     assert style.theme == "clam"
     assert style.options["Treeview"]["background"] == COLORS["surface"]
-    assert COLORS["background"] == "#0d1117"
+    assert style.options["TFrame"]["background"] == COLORS["background"]
+    assert COLORS["background"] == "#080A0D"
 
 
 def test_active_deployments_protect_configuration_paths(tmp_path: Path) -> None:

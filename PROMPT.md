@@ -48,7 +48,7 @@ Metody: hardlink (domyślna, ten sam wolumen), symlink (różne wolumeny; Window
 
 ### F5 — status, konflikty i naprawa
 
-Statusy: WŁĄCZONY, CZĘŚCIOWY (n zerwanych), ZERWANY, wyłączony; pokaż liczbę plików i ostrzeżenia. `repair` odtwarza zerwane linki i aktualizuje baseline backupu do nowej waniliowej wersji, gdy plik się zmienił. Dwa mody z tym samym targetem: drugi bez `--force` niczego nie zmienia; `--force` wymaga jawnego ostrzeżenia. Zmiana hasha źródła sugeruje ponowny deploy. `verify` porównuje hashe. Wykrywaj sytuację: gra ma `mediapc/...`, mod celuje w `media/...`, i podpowiadaj przełączenie targetu.
+Statusy: WŁĄCZONY, CZĘŚCIOWY (n zerwanych), ZERWANY, wyłączony; pokaż liczbę plików i ostrzeżenia. `repair` odtwarza zerwane linki i aktualizuje baseline backupu do nowej waniliowej wersji, gdy plik się zmienił. Dwa mody z tym samym targetem: drugi bez `--force` niczego nie zmienia; `--force` wymaga jawnego ostrzeżenia. Zmiana hasha źródła sugeruje ponowny deploy. `verify` porównuje hashe. Wykrywaj sytuację: gra ma `mediapc/...`, mod celuje w `media/...`, i podpowiadaj przełączenie targetu. Jeśli target nie istnieje, ale identyczna ścieżka istnieje pod drugim korzeniem (`media`/`mediapc`), zablokuj tworzenie równoległego targetu — backup chroni tylko dokładną ścieżkę docelową.
 
 ### F6 — profile
 

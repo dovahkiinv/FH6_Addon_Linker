@@ -174,8 +174,8 @@ class FH6LinkerApp:
         self._tooltip_mod_id: str | None = None
 
         self.root.title("FH6 Addon Linker")
-        self.root.geometry("1240x820")
-        self.root.minsize(980, 660)
+        self.root.geometry("1280x850")
+        self.root.minsize(980, 700)
         self.root.protocol("WM_DELETE_WINDOW", self._on_close)
         configure_theme(self.root, ttk)
         self._build_menu()
@@ -212,55 +212,120 @@ class FH6LinkerApp:
         ttk = self.ttk
         self.root.columnconfigure(0, weight=1)
         self.root.rowconfigure(0, weight=1)
-        main = ttk.Frame(self.root, style="App.TFrame", padding=(18, 14))
+        main = ttk.Frame(self.root, style="App.TFrame", padding=(20, 16))
         main.grid(row=0, column=0, sticky="nsew")
         main.columnconfigure(0, weight=1)
-        main.rowconfigure(5, weight=1)
-        main.rowconfigure(7, weight=1)
+        main.rowconfigure(6, weight=1)
 
+        # Nagłówek
         header = ttk.Frame(main, style="App.TFrame")
-        header.grid(row=0, column=0, sticky="ew", pady=(0, 10))
+        header.grid(row=0, column=0, sticky="ew", pady=(0, 12))
         header.columnconfigure(0, weight=1)
-        ttk.Label(header, text="FH6 Addon Linker", style="Title.TLabel").grid(
-            row=0, column=0, sticky="w"
+        brand = ttk.Frame(header, style="App.TFrame")
+        brand.grid(row=0, column=0, sticky="w")
+        ttk.Label(brand, text="FH6", style="BrandMark.TLabel").grid(
+            row=0, column=0, rowspan=2, sticky="nsw", padx=(0, 12)
+        )
+        ttk.Label(brand, text="FH6 Addon Linker", style="Title.TLabel").grid(
+            row=0, column=1, sticky="sw"
         )
         ttk.Label(
-            header,
+            brand,
             text="Biblioteka modów · bezpieczne wdrażanie i przywracanie",
             style="Subtitle.TLabel",
-        ).grid(row=1, column=0, sticky="w", pady=(2, 0))
-        setup_button = ttk.Button(header, text="Ustawienia ścieżek", command=self.open_setup)
-        setup_button.grid(row=0, column=1, rowspan=2, sticky="e", padx=(12, 0))
+        ).grid(row=1, column=1, sticky="nw", pady=(1, 0))
+        ttk.Label(header, text="LOKALNIE · OFFLINE", style="Badge.TLabel").grid(
+            row=0, column=1, sticky="e", padx=(8, 10)
+        )
+        setup_button = ttk.Button(
+            header,
+            text="Ustawienia",
+            command=self.open_setup,
+        )
+        setup_button.grid(row=0, column=2, rowspan=2, sticky="e")
         self._action_buttons.append(setup_button)
 
+        # Ostrzeżenie bezpieczeństwa jest stale widoczne, ale nie konkuruje
+        # wizualnie z głównymi akcjami.
         ttk.Label(
             main,
             text=(
                 "⚠ Modyfikowanie plików FH6 może naruszać regulamin i grozić banem. "
-                "Przed grą online przywróć zarządzane oryginały i zweryfikuj pliki w Xbox/Steam; "
+                "Przed grą online przywróć oryginały i zweryfikuj pliki w Xbox/Steam; "
                 "aplikacja nie gwarantuje bezpieczeństwa konta."
             ),
             style="Banner.TLabel",
-            wraplength=930,
+            wraplength=1120,
             justify="left",
-        ).grid(row=1, column=0, sticky="ew", pady=(0, 9))
+        ).grid(row=1, column=0, sticky="ew", pady=(0, 10))
 
+        # Ścieżki w trzech równych kartach są łatwiejsze do odczytania niż
+        # jedna długa linia, która wcześniej ucinała się przy długich folderach.
         self.paths_var = self.tk.StringVar(master=self.root, value="Nie skonfigurowano folderów")
-        ttk.Label(
-            main,
-            textvariable=self.paths_var,
-            style="Path.TLabel",
-            wraplength=930,
-            justify="left",
-        ).grid(row=2, column=0, sticky="ew", pady=(0, 10))
+        self.game_path_var = self.tk.StringVar(master=self.root, value="—")
+        self.library_path_var = self.tk.StringVar(master=self.root, value="—")
+        self.backup_path_var = self.tk.StringVar(master=self.root, value="—")
+        paths = ttk.Frame(main, style="Card.TFrame", padding=(13, 10))
+        paths.grid(row=2, column=0, sticky="ew", pady=(0, 10))
+        for column in range(3):
+            paths.columnconfigure(column, weight=1, uniform="paths")
+        for column, (heading, variable) in enumerate(
+            (
+                ("FOLDER GRY", self.game_path_var),
+                ("BIBLIOTEKA MODÓW", self.library_path_var),
+                ("KOPIE ORYGINAŁÓW", self.backup_path_var),
+            )
+        ):
+            item = ttk.Frame(paths, style="Card.TFrame")
+            item.grid(row=0, column=column, sticky="nsew", padx=(0 if column == 0 else 14, 0))
+            ttk.Label(item, text=heading, style="PathHeading.TLabel").grid(
+                row=0, column=0, sticky="w", pady=(0, 4)
+            )
+            ttk.Label(
+                item,
+                textvariable=variable,
+                style="PathValue.TLabel",
+                wraplength=350,
+                justify="left",
+            ).grid(row=1, column=0, sticky="w")
 
+        # Małe podsumowanie stanu biblioteki.
+        metrics = ttk.Frame(main, style="App.TFrame")
+        metrics.grid(row=3, column=0, sticky="ew", pady=(0, 10))
+        for column in range(3):
+            metrics.columnconfigure(column, weight=1, uniform="metrics")
+        self.total_mods_var = self.tk.StringVar(master=self.root, value="—")
+        self.active_mods_var = self.tk.StringVar(master=self.root, value="—")
+        self.attention_mods_var = self.tk.StringVar(master=self.root, value="—")
+        for column, (heading, value, style_name) in enumerate(
+            (
+                ("W BIBLIOTECE", self.total_mods_var, "MetricValue.TLabel"),
+                ("AKTYWNE", self.active_mods_var, "MetricActive.TLabel"),
+                ("WYMAGAJĄ UWAGI", self.attention_mods_var, "MetricAlert.TLabel"),
+            )
+        ):
+            card = ttk.Frame(metrics, style="Metric.TFrame", padding=(14, 9))
+            card.grid(
+                row=0,
+                column=column,
+                sticky="ew",
+                padx=(0 if column == 0 else 8, 0),
+            )
+            ttk.Label(card, text=heading, style="MetricLabel.TLabel").grid(
+                row=0, column=0, sticky="w"
+            )
+            ttk.Label(card, textvariable=value, style=style_name).grid(
+                row=1, column=0, sticky="w", pady=(1, 0)
+            )
+
+        # Główne operacje
         primary = ttk.Frame(main, style="App.TFrame")
-        primary.grid(row=3, column=0, sticky="ew", pady=(0, 6))
+        primary.grid(row=4, column=0, sticky="ew", pady=(0, 6))
         for column in range(4):
-            primary.columnconfigure(column, weight=1)
+            primary.columnconfigure(column, weight=1, uniform="primary-actions")
         self._add_action_button(
             primary,
-            "Zastosuj zaznaczone",
+            "Zastosuj wybrane",
             self.apply_selection,
             "Accent.TButton",
             column=0,
@@ -281,41 +346,48 @@ class FH6LinkerApp:
         )
         self._add_action_button(
             primary,
-            "Tryb online · przywróć backupy",
+            "Tryb online",
             self.online_mode,
             "Danger.TButton",
             column=3,
         )
 
         secondary = ttk.Frame(main, style="App.TFrame")
-        secondary.grid(row=4, column=0, sticky="ew", pady=(0, 8))
-        self._add_action_button(secondary, "Sprawdź zaznaczone", self.verify_selected)
-        self._add_action_button(secondary, "Napraw zaznaczone", self.repair_selected)
+        secondary.grid(row=5, column=0, sticky="ew", pady=(0, 8))
+        self._add_action_button(secondary, "Sprawdź", self.verify_selected)
+        self._add_action_button(secondary, "Napraw", self.repair_selected)
         self._add_action_button(secondary, "Odśwież", self.refresh)
-        self.visible_button = ttk.Button(secondary, text="Zaznacz widoczne", command=self.toggle_visible)
-        self.visible_button.pack(side="left", padx=(0, 6))
-        self.clear_selection_button = ttk.Button(
-            secondary,
-            text="Wyczyść wybór",
-            command=self.clear_visible,
-        )
-        self.clear_selection_button.pack(side="left")
-        self._selection_widgets.extend((self.visible_button, self.clear_selection_button))
 
+        # Filtr i tabela
         filter_bar = ttk.Frame(main, style="App.TFrame")
-        filter_bar.grid(row=5, column=0, sticky="nsew")
+        filter_bar.grid(row=6, column=0, sticky="nsew")
         filter_bar.columnconfigure(0, weight=1)
         filter_bar.rowconfigure(1, weight=1)
         filter_row = ttk.Frame(filter_bar, style="App.TFrame")
         filter_row.grid(row=0, column=0, sticky="ew", pady=(0, 7))
         filter_row.columnconfigure(1, weight=1)
-        ttk.Label(filter_row, text="Filtruj mody").grid(row=0, column=0, sticky="w")
+        ttk.Label(filter_row, text="Szukaj moda", style="Eyebrow.TLabel").grid(
+            row=0, column=0, sticky="w", padx=(0, 10)
+        )
         self.filter_var = self.tk.StringVar(master=self.root)
         self.filter_entry = ttk.Entry(filter_row, textvariable=self.filter_var)
-        self.filter_entry.grid(row=0, column=1, sticky="ew", padx=(10, 0))
+        self.filter_entry.grid(row=0, column=1, sticky="ew", padx=(0, 8))
         self._selection_widgets.append(self.filter_entry)
         self.filter_entry.bind("<KeyRelease>", lambda _event: self._render_tree())
         self.filter_entry.bind("<Escape>", self._clear_filter)
+        self.visible_button = ttk.Button(
+            filter_row,
+            text="Zaznacz widoczne",
+            command=self.toggle_visible,
+        )
+        self.visible_button.grid(row=0, column=2, sticky="e", padx=(0, 6))
+        self.clear_selection_button = ttk.Button(
+            filter_row,
+            text="Wyczyść wybór",
+            command=self.clear_visible,
+        )
+        self.clear_selection_button.grid(row=0, column=3, sticky="e")
+        self._selection_widgets.extend((self.visible_button, self.clear_selection_button))
 
         tree_frame = ttk.Frame(filter_bar, style="Card.TFrame")
         tree_frame.grid(row=1, column=0, sticky="nsew")
@@ -335,12 +407,12 @@ class FH6LinkerApp:
         self.tree.heading("files", text="Pliki", anchor="center", command=lambda: self._sort("files"))
         self.tree.heading("status", text="Stan", anchor="center", command=lambda: self._sort("status"))
         self.tree.heading("warnings", text="Uwagi", anchor="w", command=lambda: self._sort("warnings"))
-        self.tree.column("#0", width=250, minwidth=170, stretch=True)
-        self.tree.column("choice", width=66, minwidth=60, stretch=False, anchor="center")
-        self.tree.column("active", width=78, minwidth=70, stretch=False, anchor="center")
-        self.tree.column("files", width=62, minwidth=56, stretch=False, anchor="center")
-        self.tree.column("status", width=116, minwidth=100, stretch=False, anchor="center")
-        self.tree.column("warnings", width=430, minwidth=180, stretch=True)
+        self.tree.column("#0", width=260, minwidth=170, stretch=True)
+        self.tree.column("choice", width=65, minwidth=58, stretch=False, anchor="center")
+        self.tree.column("active", width=78, minwidth=68, stretch=False, anchor="center")
+        self.tree.column("files", width=62, minwidth=54, stretch=False, anchor="center")
+        self.tree.column("status", width=112, minwidth=96, stretch=False, anchor="center")
+        self.tree.column("warnings", width=360, minwidth=150, stretch=True)
         self.tree.tag_configure("enabled", foreground=COLORS["success"])
         self.tree.tag_configure("partial", foreground=COLORS["warning"])
         self.tree.tag_configure("broken", foreground=COLORS["danger"])
@@ -368,19 +440,21 @@ class FH6LinkerApp:
         self.tree.bind("<Leave>", lambda _event: self._hide_tooltip())
 
         log_header = ttk.Frame(main, style="App.TFrame")
-        log_header.grid(row=6, column=0, sticky="ew", pady=(10, 5))
+        log_header.grid(row=7, column=0, sticky="ew", pady=(10, 5))
         log_header.columnconfigure(0, weight=1)
         ttk.Label(log_header, text="Dziennik operacji", font=("Segoe UI Semibold", 10)).grid(
             row=0, column=0, sticky="w"
         )
-        ttk.Button(log_header, text="Kopiuj log", command=self._copy_log).grid(row=0, column=1, sticky="e")
+        ttk.Button(log_header, text="Kopiuj log", command=self._copy_log).grid(
+            row=0, column=1, sticky="e"
+        )
         log_frame = ttk.Frame(main, style="Card.TFrame")
-        log_frame.grid(row=7, column=0, sticky="nsew")
+        log_frame.grid(row=8, column=0, sticky="ew")
         log_frame.columnconfigure(0, weight=1)
         log_frame.rowconfigure(0, weight=1)
         self.log = self.tk.Text(
             log_frame,
-            height=7,
+            height=5,
             wrap="word",
             relief="flat",
             borderwidth=0,
@@ -402,7 +476,7 @@ class FH6LinkerApp:
         self.log.bind("<Control-C>", self._copy_log_event)
 
         footer = ttk.Frame(main, style="App.TFrame")
-        footer.grid(row=8, column=0, sticky="ew", pady=(8, 0))
+        footer.grid(row=9, column=0, sticky="ew", pady=(8, 0))
         footer.columnconfigure(0, weight=1)
         self.status_var = self.tk.StringVar(master=self.root, value="Gotowe")
         ttk.Label(footer, textvariable=self.status_var, style="Subtitle.TLabel").grid(
@@ -502,6 +576,16 @@ class FH6LinkerApp:
             row.mod_id for row in self._rows if row.status.casefold() != "wyłączony"
         }
         self._desired_mod_ids = set(self._active_mod_ids)
+        self.total_mods_var.set(str(len(self._rows)))
+        self.active_mods_var.set(str(len(self._active_mod_ids)))
+        attention_count = sum(
+            1
+            for row in self._rows
+            if row.broken_count
+            or row.status.casefold() in {"zerwany", "częściowy"}
+            or row.warnings
+        )
+        self.attention_mods_var.set(str(attention_count))
         self._render_tree()
         for issue in workspace.scan.issues:
             self._append_log(f"{issue.severity.upper()}: {issue.message}")
@@ -521,12 +605,19 @@ class FH6LinkerApp:
     def _update_path_label(self) -> None:
         try:
             config = self.store.load_config()
-            game = str(config.game_root) if config.game_root else "?"
-            library = str(config.library_dir) if config.library_dir else "?"
-            backup = config.backup_dir or (self.store.config_dir / "backups")
-            self.paths_var.set(f"Gra: {game}    ·    Biblioteka: {library}    ·    Backup: {backup}")
+            game = str(config.game_root) if config.game_root else "Nie skonfigurowano"
+            library = str(config.library_dir) if config.library_dir else "Nie skonfigurowano"
+            backup = str(config.backup_dir or (self.store.config_dir / "backups"))
+            self.game_path_var.set(game)
+            self.library_path_var.set(library)
+            self.backup_path_var.set(backup)
+            self.paths_var.set(f"Gra: {game} · Biblioteka: {library} · Kopie: {backup}")
         except Exception as exc:
-            self.paths_var.set(f"Nie można odczytać konfiguracji: {exc}")
+            message = f"Nie można odczytać konfiguracji: {exc}"
+            self.game_path_var.set(message)
+            self.library_path_var.set("—")
+            self.backup_path_var.set("—")
+            self.paths_var.set(message)
 
     def _render_tree(self) -> None:
         self.tree.delete(*self.tree.get_children(""))
@@ -801,7 +892,7 @@ class FH6LinkerApp:
 
     def online_mode(self) -> None:
         confirmed = self.messagebox.askyesno(
-            "Tryb online — przywróć backupy modów",
+            "Tryb online — przywróć oryginały",
             "Ta operacja wyłączy zarządzane mody i przywróci zapisane kopie oryginałów.\n\n"
             "Pliki obce lub zmienione pozostaną nietknięte; w razie potrzeby użyj "
             "weryfikacji plików w Xbox/Steam.\n\n"
@@ -812,7 +903,7 @@ class FH6LinkerApp:
             icon="warning",
         )
         if confirmed:
-            self._restore_with_plan("Tryb online — przywróć backupy zarządzanych plików")
+            self._restore_with_plan("Tryb online — przywróć oryginały zarządzanych plików")
 
     def _restore_with_plan(self, title: str) -> None:
         self._plan_then_confirm(

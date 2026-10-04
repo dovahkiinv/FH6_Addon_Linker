@@ -68,3 +68,18 @@ konsekwencje.
   sprawdzane względem magazynu; weryfikowany jest także domyślny magazyn.
 - **Konsekwencje:** symlink wyprowadzający poza magazyn zatrzymuje operację
   przed zmianą plików gry.
+
+## ADR-0008: backup dotyczy dokładnego targetu, a nie równoległego korzenia
+
+- **Kontekst:** mod może wskazywać `media/...`, podczas gdy oryginalny plik
+  instalacji znajduje się pod odpowiadającym `mediapc/...` (lub odwrotnie).
+  Backup z innej ścieżki nie przywróciłby poprawnie pliku po wyłączeniu moda.
+- **Decyzja:** backup zapisuje wyłącznie istniejący plik pod dokładnym targetem.
+  Jeśli target nie istnieje, ale jego dokładny odpowiednik jest pod drugim
+  korzeniem, wdrożenie jest blokowane i raportuje, jak poprawić strukturę moda.
+  Jeśli oba pliki istnieją, aplikacja ostrzega i zabezpiecza wyłącznie wybrany
+  target — drugiego drzewa nie modyfikuje.
+- **Konsekwencje:** aplikacja nie tworzy po cichu równoległego drzewa `media` /
+  `mediapc` w scenariuszu, w którym można wskazać oryginał pod drugim
+  korzeniem. W niejednoznacznych przypadkach decyzję o targetcie podejmuje
+  użytkownik.

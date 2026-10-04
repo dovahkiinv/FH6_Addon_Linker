@@ -8,13 +8,18 @@ na [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) i wersjonowaniu
 
 ### Added
 
+- Odświeżony layout GUI: prawie czarna paleta, karty ścieżek i statystyk,
+  czytelniejsze akcje i większa przestrzeń na listę modów.
+- Konfiguracja PyInstaller one-file/windowed, zależność budowania w
+  `requirements-build.txt`, skrypt `scripts/build_exe.ps1` i workflow GitHub
+  Actions budujący Windowsowy EXE oraz portable ZIP.
 - GUI M2 tkinter/ttk: ciemny motyw, czytelny stan pustej biblioteki, kreator
   konfiguracji, lista modów z filtrem i checkboxami, plan przed zmianami, postęp,
   dziennik i tryb przywracania backupów; konflikty pozostają bez zmian.
 - Zabezpieczenie kreatora przed zmianą ścieżek gry, biblioteki lub backupów,
   gdy istnieją wdrożone pliki, oraz blokowanie wyboru podczas pracy w tle.
 - Uruchamianie GUI przez `python -m fh6linker gui` i Windowsowy launcher
-  `FH6AddonLinker.pyw`; CLI pozostaje pomocnicze, a `.exe` jest planowane na M4.
+  `FH6AddonLinker.pyw`; CLI pozostaje pomocnicze, a build `.exe` obsługuje PyInstaller.
 - Szkielet pakietu Python `fh6linker` i uruchamialne polecenie `--version`.
 - Konfigurację projektu, zależności deweloperskie, testy smoke i CI dla Linuxa
   oraz Windowsa na Pythonie 3.11, 3.13 i 3.14.
@@ -34,4 +39,9 @@ na [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) i wersjonowaniu
 
 ### Fixed
 
+- Przy znanym oryginale w odpowiadającej ścieżce `media`/`mediapc` blokuje
+  tworzenie nowego równoległego targetu; w planie wyjaśnia, że kopia obejmuje
+  wyłącznie dokładną ścieżkę docelową.
+- Ustawia ciemne tło również dla zwykłych ramek kreatora/dialogów, które na
+  części platform wcześniej mogły odziedziczyć jasny kolor motywu systemowego.
 - Stabilizuje smoke testy CLI na Windows/Linux, sprawdzając wpis konsolowy przez metadane i wymuszając UTF-8 w procesach potomnych.
