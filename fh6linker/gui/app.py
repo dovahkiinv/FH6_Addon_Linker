@@ -52,6 +52,17 @@ def _full_target_path(target_rel: str, game_root: Path | None) -> str:
     return str(game_root.joinpath(*PurePosixPath(target_rel).parts))
 
 
+def _resource_path(relative_path: str | Path) -> Path:
+    """Zwraca ścieżkę do zasobu z katalogu źródeł lub pakietu PyInstaller."""
+    bundle_dir = getattr(sys, "_MEIPASS", None)
+    base_path = (
+        Path(bundle_dir)
+        if bundle_dir is not None
+        else Path(__file__).resolve().parents[2]
+    )
+    return base_path / relative_path
+
+
 def open_directory(path: str | Path) -> None:
     """Otwiera istniejący katalog w domyślnym menedżerze plików systemu."""
     directory = Path(path).expanduser()
@@ -213,6 +224,7 @@ class FH6LinkerApp:
         self._tooltip_mod_id: str | None = None
 
         self.root.title(self._t("window_title"))
+        self._set_window_icon()
         self.root.geometry("1280x850")
         self.root.minsize(980, 700)
         self.root.protocol("WM_DELETE_WINDOW", self._on_close)
@@ -221,6 +233,18 @@ class FH6LinkerApp:
         self._build_ui()
         self._schedule_event_poll()
         self.root.after(0, self._validate_startup)
+
+    def _set_window_icon(self) -> None:
+        """Sets the same FH6 Addon Linker icon used by the packaged executable."""
+        if os.name != "nt":
+            return
+        icon_path = _resource_path("assets/fh6_addon_linker.ico")
+        try:
+            self.root.iconbitmap(str(icon_path))
+        except self.tk.TclError:
+            # The window and the PyInstaller executable must still open if the
+            # platform's Tk build cannot load an icon resource.
+            pass
 
     def _t(self, key: str, **values: Any) -> str:
         return translate(self.language, key, **values)

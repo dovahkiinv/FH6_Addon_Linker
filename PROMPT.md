@@ -22,7 +22,7 @@ Modyfikacja plików gry może naruszać regulamin i grozić banem w multiplayerz
 
 - Python 3.11+, zero zależności runtime; GUI `tkinter/ttk`, CLI `argparse`.
 - `pytest` i `PyInstaller` wyłącznie jako narzędzia deweloperskie.
-- Pakowanie docelowe: `FH6AddonLinker.exe` (`--onefile --windowed`).
+- Pakowanie docelowe: `FH6_Addon_Linker.exe` (`--onefile --windowed`).
 - Identyfikatory/kod po angielsku; UI, komunikaty, docstringi i dokumentacja po polsku; README ma też sekcję EN.
 - Type hints, `dataclasses` w wewnętrznym API, `pathlib` zamiast `os.path`; brak `print()` w logice, używaj loggingu i raportów przekazywanych do UI/CLI.
 - Błędy opisują: co się stało → dlaczego → co zrobić. Nie zgaduj faktów o grze. Nieoczywiste decyzje zapisz w `docs/DECISIONS.md` jako ADR (kontekst → decyzja → konsekwencje).

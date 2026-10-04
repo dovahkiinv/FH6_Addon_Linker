@@ -40,12 +40,12 @@ py -3 -m venv .venv-build
 powershell -ExecutionPolicy Bypass -File .\scripts\build_exe.ps1
 ```
 
-Plik `dist\FH6AddonLinker.exe` jest pojedynczym programem GUI z Pythonem i
+Plik `dist\FH6_Addon_Linker.exe` jest pojedynczym programem GUI z Pythonem i
 Tkinterem w środku; na komputerze docelowym nie trzeba instalować Pythona.
 Konfiguracja i kopie zapasowe są przechowywane w profilu użytkownika, poza
 folderem EXE. Budowanie można też uruchomić przez **Actions → Windows
 executable → Run workflow**; z Actions pobierz artefakt
-`FH6AddonLinker-windows-x64`.
+`FH6_Addon_Linker-windows-x64`.
 
 EXE nie jest podpisany certyfikatem code-signing, więc SmartScreen może pokazać
 ostrzeżenie przy pierwszym uruchomieniu.

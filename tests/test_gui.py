@@ -10,6 +10,7 @@ from conftest import FakeProject
 from fh6linker.gui.app import (
     FH6LinkerApp,
     ModRow,
+    _resource_path,
     build_mod_rows,
     filter_mod_rows,
     toggle_visible_selection,
@@ -27,6 +28,19 @@ from fh6linker.i18n import (
 from fh6linker.report import ModStatus, OperationReport, PlannedAction, StatusReport
 from fh6linker.scanner import scan_library
 from fh6linker.state import AppConfig
+
+
+def test_icon_resource_path_supports_source_and_pyinstaller(
+    monkeypatch: pytest.MonkeyPatch, tmp_path: Path
+) -> None:
+    icon_relpath = Path("assets/fh6_addon_linker.ico")
+    source_root = Path(__file__).resolve().parents[1]
+    monkeypatch.delattr("sys._MEIPASS", raising=False)
+    assert _resource_path(icon_relpath) == source_root / icon_relpath
+    assert _resource_path(icon_relpath).is_file()
+
+    monkeypatch.setattr("sys._MEIPASS", str(tmp_path), raising=False)
+    assert _resource_path(icon_relpath) == tmp_path / icon_relpath
 
 
 def test_view_model_combines_scan_status_and_missing_mods(fake_project: FakeProject) -> None:

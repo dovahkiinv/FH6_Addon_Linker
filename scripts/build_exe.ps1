@@ -47,7 +47,7 @@ try {
         throw "PyInstaller failed to build the executable."
     }
 
-    $executable = Join-Path $repositoryRoot "dist/FH6AddonLinker.exe"
+    $executable = Join-Path $repositoryRoot "dist/FH6_Addon_Linker.exe"
     if (-not (Test-Path $executable -PathType Leaf)) {
         throw "The expected executable was not created: $executable"
     }

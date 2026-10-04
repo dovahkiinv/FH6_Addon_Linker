@@ -55,7 +55,7 @@ py -3 -m venv .venv-build
 powershell -ExecutionPolicy Bypass -File .\scripts\build_exe.ps1
 ```
 
-Gotowy plik powstanie w `dist\FH6AddonLinker.exe`. Jest to pojedynczy program
+Gotowy plik powstanie w `dist\FH6_Addon_Linker.exe`. Jest to pojedynczy program
 graficzny z dołączonym Pythonem i tkinter — na komputerze docelowym Python nie
 jest potrzebny. Konfiguracja i kopie oryginałów pozostają w profilu użytkownika,
 więc można przenieść EXE bez utraty stanu. Alternatywnie workflow **Windows

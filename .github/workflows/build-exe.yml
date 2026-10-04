@@ -31,14 +31,14 @@ jobs:
       - name: Create portable ZIP
         shell: pwsh
         run: >-
-          Compress-Archive -Path dist/FH6AddonLinker.exe, README.md, LICENSE, docs/USAGE.md
-          -DestinationPath dist/FH6AddonLinker-windows-x64.zip -Force
+          Compress-Archive -Path dist/FH6_Addon_Linker.exe, README.md, LICENSE, docs/USAGE.md
+          -DestinationPath dist/FH6_Addon_Linker-windows-x64.zip -Force
 
       - name: Upload executable and portable ZIP
         uses: actions/upload-artifact@v4
         with:
-          name: FH6AddonLinker-windows-x64
+          name: FH6_Addon_Linker-windows-x64
           path: |
-            dist/FH6AddonLinker.exe
-            dist/FH6AddonLinker-windows-x64.zip
+            dist/FH6_Addon_Linker.exe
+            dist/FH6_Addon_Linker-windows-x64.zip
           if-no-files-found: error

@@ -15,6 +15,8 @@ na [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) i wersjonowaniu
 - Przyciski „Otwórz folder” przy ścieżkach gry, biblioteki i kopii, akcja
   „Włącz wszystkie” z planem zatwierdzenia oraz przełącznik Polski/English
   zapamiętywany między uruchomieniami.
+- Ikona FH6 Addon Linker w oknie aplikacji i zasobie EXE; gotowy plik ma nazwę
+  `FH6_Addon_Linker.exe`.
 - Konfiguracja PyInstaller one-file/windowed, zależność budowania w
   `requirements-build.txt`, skrypt `scripts/build_exe.ps1` i workflow GitHub
   Actions budujący Windowsowy EXE oraz portable ZIP.
