@@ -3,8 +3,11 @@
 
 from pathlib import Path
 
-project_root = Path(SPECPATH).resolve().parent.parent
+spec_directory = Path(SPECPATH).resolve()
+project_root = spec_directory.parent
 entry_point = project_root / "FH6AddonLinker.pyw"
+if not entry_point.is_file():
+    raise FileNotFoundError(f"GUI launcher was not found: {entry_point}")
 
 analysis = Analysis(
     [str(entry_point)],
