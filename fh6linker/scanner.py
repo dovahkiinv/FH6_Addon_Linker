@@ -5,7 +5,7 @@ from __future__ import annotations
 import json
 import os
 import stat
-from dataclasses import dataclass, field
+from dataclasses import dataclass, field, replace
 from pathlib import Path, PurePosixPath
 from typing import Any
 
@@ -114,10 +114,12 @@ class ScanResult:
 
 
 def scan_library(library_dir: str | Path) -> ScanResult:
-    """Wykrywa mody po korzeniach `media`, `mediapc` lub `mediaoverride`.
+    """Wykrywa korzenie `media`/`mediapc`/`mediaoverride` i wybrane układy virtual-root.
 
     Katalogi bez korzenia moda są traktowane jako kategorie i skanowane głębiej.
-    Dowiązania symboliczne nie są śledzone, aby skan nie wychodził poza bibliotekę.
+    Rozpoznaje również dokładny układ FH6 Universal Radio, który instaluje
+    `version.dll` i `fh6-radio` obok pliku wykonywalnego gry. Dowiązania symboliczne
+    nie są śledzone, aby skan nie wychodził poza bibliotekę.
     """
     library = Path(library_dir).expanduser().resolve()
     if not library.exists() or not library.is_dir():
@@ -156,7 +158,8 @@ def scan_library(library_dir: str | Path) -> ScanResult:
         ]
         metadata_path = folder / "mod.json"
         has_metadata = not metadata_path.is_symlink() and metadata_path.is_file()
-        if marker_dirs or has_metadata:
+        universal_radio = _is_universal_radio_install(children)
+        if marker_dirs or has_metadata or universal_radio:
             result.mods.append(
                 _build_mod(
                     library,
@@ -164,6 +167,9 @@ def scan_library(library_dir: str | Path) -> ScanResult:
                     children,
                     marker_dirs,
                     virtual_root=not marker_dirs,
+                    recognized_layout=(
+                        "fh6_universal_radio" if universal_radio and not marker_dirs else None
+                    ),
                 )
             )
             return
@@ -202,11 +208,29 @@ def _build_mod(
     marker_dirs: list[Path],
     *,
     virtual_root: bool = False,
+    recognized_layout: str | None = None,
 ) -> Mod:
     relative_id = folder.relative_to(library).as_posix()
     mod_id = relative_id if relative_id not in {"", "."} else folder.name
     issues: list[ModIssue] = []
     metadata = _read_metadata(folder / "mod.json", issues)
+    if recognized_layout == "fh6_universal_radio":
+        metadata = replace(
+            metadata,
+            display_name=metadata.display_name or "FH6 Universal Radio",
+            category=metadata.category or "Audio",
+        )
+        issues.append(
+            ModIssue(
+                code="root_loader_mod",
+                message=(
+                    "Rozpoznano instalację FH6 Universal Radio w katalogu gry: wdrożenie obejmie "
+                    "version.dll i katalog fh6-radio obok forzahorizon6.exe. version.dll może "
+                    "kolidować z innym loaderem DLL; sprawdź plan przed zatwierdzeniem."
+                ),
+                path=folder,
+            )
+        )
     name = folder.name
     try:
         parent_category = folder.parent.relative_to(library).as_posix()
@@ -389,6 +413,41 @@ def _collect_files(
                     mtime=stat.st_mtime,
                 )
             )
+
+
+def _is_universal_radio_install(children: list[Path]) -> bool:
+    """Recognizes the unpacked Universal Radio payload installed beside the game EXE.
+
+    This intentionally matches its distinctive `version.dll` + `fh6-radio` layout;
+    arbitrary root-level files are never inferred as game targets.
+    """
+    version_dll = any(
+        child.name.casefold() == "version.dll"
+        and child.is_file()
+        and not child.is_symlink()
+        for child in children
+    )
+    radio_dir = next(
+        (
+            child
+            for child in children
+            if child.name.casefold() == "fh6-radio"
+            and child.is_dir()
+            and not child.is_symlink()
+        ),
+        None,
+    )
+    if not version_dll or radio_dir is None:
+        return False
+    try:
+        contents = {
+            child.name.casefold(): child
+            for child in radio_dir.iterdir()
+            if child.is_file() and not child.is_symlink()
+        }
+    except OSError:
+        return False
+    return "fh6-radio-worker.exe" in contents and "config.toml" in contents
 
 
 def _read_metadata(path: Path, issues: list[ModIssue]) -> ModMetadata:

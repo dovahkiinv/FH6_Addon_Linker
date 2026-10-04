@@ -103,11 +103,22 @@ D:\FH6Mods\
 
 Wszystko pod katalogiem `media` trafi do takiej samej ścieżki w grze. Pliki
 README — również umieszczone wewnątrz korzenia gry moda — są pomijane. Archiwa
-pozostawione w bibliotece są cicho ignorowane i nie są wdrażane; przed użyciem
-moda rozpakuj jego zawartość do folderu moda. Inne pliki i grafiki dokumentacyjne
-poza korzeniem gry są raportowane, ale nigdy nie są wdrażane. Biblioteka i gra
-powinny znajdować się na tym samym wolumenie, aby `auto` mogło użyć hardlinków
-bez dodatkowego miejsca.
+pozostawione w bibliotece są cicho ignorowane i nie są wdrażane ani automatycznie
+rozpakowywane; przed użyciem moda rozpakuj jego zawartość do folderu moda. Inne
+pliki i grafiki dokumentacyjne poza korzeniem gry są raportowane, ale nigdy nie
+są wdrażane. Biblioteka i gra powinny znajdować się na tym samym wolumenie, aby
+`auto` mogło użyć hardlinków bez dodatkowego miejsca.
+
+### FH6 Universal Radio
+
+Rozpakowany FH6 Universal Radio nie zawiera katalogu `media` ani `mod.json`.
+Skaner rozpoznaje jego konkretny układ: `version.dll` w katalogu moda oraz
+`fh6-radio/` z `config.toml` i `fh6-radio-worker.exe`. Po **Odśwież** powinien
+pojawić się jako **FH6 Universal Radio** w kategorii Audio. `version.dll` i cały
+katalog `fh6-radio/` zostaną zaplanowane obok `forzahorizon6.exe`; otwórz i
+sprawdź plan przed zatwierdzeniem. `version.dll` może kolidować z innym loaderem.
+Jeśli dokładnie `version.dll` już istnieje w katalogu gry, aplikacja utworzy jego
+kopię zapasową przed zastąpieniem; dla nowych ścieżek backup nie powstaje.
 
 ## Bezpieczny przebieg
 

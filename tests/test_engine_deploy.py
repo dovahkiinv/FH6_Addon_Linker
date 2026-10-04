@@ -37,6 +37,44 @@ def test_deploy_uses_hardlink_and_backs_up_original(fake_project: FakeProject) -
     assert entry.backup_mtime is not None
 
 
+def test_universal_radio_deploys_beside_executable_and_restores_version_dll(
+    fake_project: FakeProject,
+) -> None:
+    mod_root = fake_project.library_dir / "Tools" / "Universal Radio"
+    radio_root = mod_root / "fh6-radio"
+    radio_root.mkdir(parents=True)
+    (mod_root / "version.dll").write_bytes(b"radio proxy dll")
+    (mod_root / "README.txt").write_text("install next to the game executable", encoding="utf-8")
+    (radio_root / "config.toml").write_text("[general]", encoding="utf-8")
+    (radio_root / "fh6-radio-worker.exe").write_bytes(b"radio worker")
+
+    target_dll = fake_project.game_root / "version.dll"
+    original_dll = b"pre-existing version proxy"
+    target_dll.write_bytes(original_dll)
+
+    preview = fake_project.engine.enable(["FH6 Universal Radio"], dry_run=True)
+    assert preview.exit_code == 0
+    assert preview.files_planned == 3
+    dll_action = next(action for action in preview.actions if action.file == "version.dll")
+    assert dll_action.backup is not None
+    assert all(
+        action.backup is None
+        for action in preview.actions
+        if action.file != "version.dll"
+    )
+    assert target_dll.read_bytes() == original_dll
+
+    enabled = fake_project.engine.enable(["FH6 Universal Radio"])
+    assert enabled.exit_code == 0
+    assert target_dll.read_bytes() == b"radio proxy dll"
+    assert (fake_project.game_root / "fh6-radio" / "config.toml").read_text() == "[general]"
+
+    disabled = fake_project.engine.disable(["FH6 Universal Radio"])
+    assert disabled.exit_code == 0
+    assert target_dll.read_bytes() == original_dll
+    assert not (fake_project.game_root / "fh6-radio").exists()
+
+
 def test_enable_and_disable_are_idempotent(fake_project: FakeProject) -> None:
     target = fake_project.game_root / "media/Audio/FMODBanks/engine.bank"
     expected = target.read_bytes()

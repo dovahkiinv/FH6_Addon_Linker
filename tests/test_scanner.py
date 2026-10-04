@@ -97,6 +97,73 @@ def test_virtual_root_mod_maps_files_to_game_root_and_skips_readme(tmp_path: Pat
     assert any(issue.code == "readme_ignored" for issue in mod.issues)
 
 
+def test_universal_radio_root_layout_is_recognized_and_mapped_to_game_root(
+    tmp_path: Path,
+) -> None:
+    library = tmp_path / "library"
+    mod_root = library / "FH6 Universal Radio 215"
+    radio_root = mod_root / "fh6-radio"
+    (radio_root / "ui" / "assets").mkdir(parents=True)
+    (mod_root / "version.dll").write_bytes(b"radio loader")
+    (mod_root / "README.txt").write_text("install beside game executable", encoding="utf-8")
+    (radio_root / "config.toml").write_text("[general]", encoding="utf-8")
+    (radio_root / "fh6-radio-worker.exe").write_bytes(b"worker")
+    (radio_root / "ui" / "assets" / "radio.png").write_bytes(b"artwork")
+
+    result = scan_library(library)
+
+    assert len(result.mods) == 1
+    mod = result.mods[0]
+    assert mod.valid
+    assert mod.display_name == "FH6 Universal Radio"
+    assert mod.category == "Audio"
+    assert mod.root_marker is None
+    assert {item.target_rel for item in mod.files} == {
+        "version.dll",
+        "fh6-radio/config.toml",
+        "fh6-radio/fh6-radio-worker.exe",
+        "fh6-radio/ui/assets/radio.png",
+    }
+    assert not any(issue.code == "loose_file_ignored" for issue in result.issues)
+    assert not any(issue.code == "ignored_sidecar" for issue in mod.issues)
+    assert any(issue.code == "root_loader_mod" for issue in mod.issues)
+
+
+def test_universal_radio_manifest_keeps_explicit_name_and_category(tmp_path: Path) -> None:
+    library = tmp_path / "library"
+    mod_root = library / "Radio Folder"
+    radio_root = mod_root / "fh6-radio"
+    radio_root.mkdir(parents=True)
+    (mod_root / "version.dll").write_bytes(b"loader")
+    (radio_root / "config.toml").write_text("[general]", encoding="utf-8")
+    (radio_root / "fh6-radio-worker.exe").write_bytes(b"worker")
+    (mod_root / "mod.json").write_text(
+        '{"display_name":"Custom Radio Name","category":"Custom Audio"}',
+        encoding="utf-8",
+    )
+
+    result = scan_library(library)
+
+    assert len(result.mods) == 1
+    assert result.mods[0].display_name == "Custom Radio Name"
+    assert result.mods[0].category == "Custom Audio"
+    assert "mod.json" not in {item.target_rel for item in result.mods[0].files}
+
+
+def test_incomplete_radio_like_folder_remains_unrecognized(tmp_path: Path) -> None:
+    library = tmp_path / "library"
+    mod_root = library / "Unknown Package"
+    radio_root = mod_root / "fh6-radio"
+    radio_root.mkdir(parents=True)
+    (mod_root / "version.dll").write_bytes(b"not enough markers")
+    (radio_root / "config.toml").write_text("[general]", encoding="utf-8")
+
+    result = scan_library(library)
+
+    assert result.mods == []
+    assert {issue.code for issue in result.issues} == {"loose_file_ignored"}
+
+
 def test_readme_inside_game_root_is_never_deployed(tmp_path: Path) -> None:
     library = tmp_path / "library"
     mod_root = library / "Audio" / "Engine Mod" / "media"

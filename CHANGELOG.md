@@ -40,6 +40,9 @@ na [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) i wersjonowaniu
 - Kod wyjścia 3, gdy operacja wymaga uprawnień administratora.
 - Obsługę modów virtual-root z `mod.json` oraz pomijanie README nawet wewnątrz
   korzeni gry.
+- Automatyczne rozpoznawanie rozpakowanego FH6 Universal Radio po układzie
+  `version.dll` + `fh6-radio/`, z mapowaniem plików do katalogu głównego gry i
+  ostrzeżeniem o możliwym konflikcie loaderów DLL.
 - Testy rdzenia oraz demo end-to-end dla Linuxa i Windows.
 
 ### Fixed
