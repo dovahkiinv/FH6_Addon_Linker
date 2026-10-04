@@ -53,11 +53,11 @@ do osobnego magazynu kopii. Przy wyłączeniu usuwa własny link i przywraca tę
 kopię. Nowy target nie ma oryginału do zapisania — przywracanie usuwa go, o ile
 nadal należy do aplikacji.
 
-`media/...` i `mediapc/...` są różnymi ścieżkami. Jeżeli target moda nie istnieje,
-ale ten sam plik jest w drugim drzewie, wdrożenie zostanie zatrzymane zamiast
-tworzyć równoległą ścieżkę. Popraw wtedy korzeń w strukturze moda i odśwież
-bibliotekę. Gdy pliki istnieją w obu drzewach, plan jasno ostrzega, że kopia
-obejmie wyłącznie dokładnie wybrany target.
+`media/...` i `mediapc/...` są różnymi ścieżkami. Jeśli target moda nie istnieje,
+ale odpowiednik jest w drugim drzewie, plan ostrzeże, że wdrożenie utworzy nowy
+target pod ścieżką wskazaną przez moda — bez modyfikowania lub kopiowania pliku
+z drugiego drzewa. Sprawdź korzeń przed zatwierdzeniem planu. Backup powstaje
+wyłącznie wtedy, gdy zastępowany jest plik pod dokładnie wybranym targetem.
 
 ## CLI pomocnicze
 

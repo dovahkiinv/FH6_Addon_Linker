@@ -320,10 +320,7 @@ class LinkerEngine:
                         )
                     source_digest = digest_file(source)
                     target = self._target_path(config.game_root, mod_file.target_rel)
-                    if self._media_layout_warning(config.game_root, mod_file.target_rel, report):
-                        # Nie tworzymy po cichu równoległego drzewa, gdy istnieje
-                        # dokładny oryginał pod odpowiednikiem media/mediapc.
-                        continue
+                    self._media_layout_warning(config.game_root, mod_file.target_rel, report)
                     existing_entry = (
                         current_mod_state.files.get(mod_file.target_rel)
                         if current_mod_state
@@ -1496,17 +1493,16 @@ class LinkerEngine:
         game_root: Path,
         target_rel: str,
         report: OperationReport,
-    ) -> bool:
-        """Ostrzega lub blokuje równoległy target przy niezgodności media/mediapc.
+    ) -> None:
+        """Ostrzega, gdy odpowiednik media/mediapc leży pod innym korzeniem.
 
-        Zwraca ``True``, gdy w docelowym miejscu nie ma pliku, ale istnieje
-        dokładny odpowiednik w drugim drzewie. Kopia zapasowa obejmuje wyłącznie
-        ten sam target, dlatego w takiej sytuacji nie wolno tworzyć nowej ścieżki
-        i pozostawiać oryginału pod alternatywnym korzeniem.
+        Nie mapujemy automatycznie jednej ścieżki na drugą: są to różne targety.
+        Po obejrzeniu planu użytkownik może zdecydować, czy utworzyć wskazaną przez
+        moda nową ścieżkę. Kopia oryginału obejmuje wyłącznie dokładny target.
         """
         parts = PurePosixPath(target_rel).parts
         if len(parts) < 2:
-            return False
+            return
 
         marker = parts[0].casefold()
         if marker == "media":
@@ -1514,33 +1510,29 @@ class LinkerEngine:
         elif marker == "mediapc":
             other_marker = "media"
         else:
-            return False
+            return
 
         target = game_root.joinpath(*parts)
         alternative = game_root.joinpath(other_marker, *parts[1:])
         if not alternative.is_file():
-            return False
+            return
 
         target_description = f"{marker}/{PurePosixPath(*parts[1:]).as_posix()}"
-        other_description = f"{other_marker}/{PurePosixPath(*parts[1:]).as_posix()}"
         if not target.exists() and not target.is_symlink():
-            report.errors.append(
-                f"Niezgodny układ {marker}/{other_marker}: mod celuje w {target_description}, "
-                f"ale oryginalny plik istnieje pod {alternative}. Nie tworzę równoległego "
-                f"{target_description}. Backup chroni tylko dokładną ścieżkę docelową — "
-                f"nie przenosi pliku z {other_description}. Popraw korzeń moda albo sprawdź "
-                "ręcznie strukturę instalacji gry."
+            message = (
+                f"Mod celuje w {target_description}, ale odpowiednik istnieje pod {alternative}. "
+                f"Plan utworzy nowy target {target}; nie nadpisze ani nie skopiuje pliku z "
+                f"{other_marker}/. Backup powstanie tylko wtedy, gdy dokładny target już istnieje. "
+                f"Sprawdź, czy mod powinien używać {other_marker}/."
             )
-            return True
-
-        message = (
-            f"Mod celuje w {target_description}, ale gra ma również {alternative}. "
-            f"Sprawdź, czy target powinien używać {other_marker}/. Backup obejmie wyłącznie "
-            f"dokładną ścieżkę {target}; plik {alternative} pozostanie nietknięty."
-        )
+        else:
+            message = (
+                f"Mod celuje w {target_description}, ale gra ma również {alternative}. "
+                f"Sprawdź, czy target powinien używać {other_marker}/. Backup obejmie wyłącznie "
+                f"dokładną ścieżkę {target}; plik {alternative} pozostanie nietknięty."
+            )
         if message not in report.warnings:
             report.warnings.append(message)
-        return False
 
     def _append_scan_issues(self, scan: ScanResult, report: OperationReport | StatusReport) -> None:
         for issue in scan.issues:

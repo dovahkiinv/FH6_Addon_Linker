@@ -20,7 +20,7 @@ def test_media_to_mediapc_mismatch_is_suggested(fake_project: FakeProject) -> No
     assert any("Backup obejmie wyłącznie dokładną ścieżkę" in warning for warning in report.warnings)
 
 
-def test_mismatched_root_does_not_create_parallel_tree_without_backup(
+def test_mismatched_root_warns_but_creates_selected_target_without_backup(
     fake_project: FakeProject,
 ) -> None:
     target = fake_project.game_root / "media/Audio/FMODBanks/engine.bank"
@@ -30,14 +30,29 @@ def test_mismatched_root_does_not_create_parallel_tree_without_backup(
     alternate.parent.mkdir(parents=True, exist_ok=True)
     alternate.write_bytes(original)
 
-    report = fake_project.engine.enable(["Engine Mod"])
+    dry_run = fake_project.engine.enable(["Engine Mod"], dry_run=True)
 
-    assert report.exit_code == 1
+    assert dry_run.exit_code == 0
+    assert dry_run.files_planned == 1
+    assert any("Plan utworzy nowy target" in warning for warning in dry_run.warnings)
     assert not target.exists()
     assert alternate.read_bytes() == original
-    assert fake_project.store.load_state().mods == {}
-    assert any("Nie tworzę równoległego" in error for error in report.errors)
+
+    enabled = fake_project.engine.enable(["Engine Mod"])
+
+    assert enabled.exit_code == 0
+    assert target.read_bytes() == b"modded engine audio\x00"
+    assert alternate.read_bytes() == original
+    entry = fake_project.store.load_state().mods["Audio/Engine Mod"].files[
+        "media/Audio/FMODBanks/engine.bank"
+    ]
+    assert entry.backup is None
     assert not fake_project.backup_dir.exists()
+
+    disabled = fake_project.engine.disable(["Engine Mod"])
+    assert disabled.exit_code == 0
+    assert not target.exists()
+    assert alternate.read_bytes() == original
 
 
 def test_game_update_breaks_link_and_repair_updates_baseline(fake_project: FakeProject) -> None:

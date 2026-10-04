@@ -41,9 +41,9 @@ na [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) i wersjonowaniu
 
 ### Fixed
 
-- Przy znanym oryginale w odpowiadającej ścieżce `media`/`mediapc` blokuje
-  tworzenie nowego równoległego targetu; w planie wyjaśnia, że kopia obejmuje
-  wyłącznie dokładną ścieżkę docelową.
+- Przy odpowiedniku pliku pod drugim korzeniem `media`/`mediapc` plan pokazuje
+  ostrzeżenie, ale pozwala zatwierdzić target wskazany przez moda; backup obejmuje
+  wyłącznie plik istniejący dokładnie pod tym targetem.
 - Ustawia ciemne tło również dla zwykłych ramek kreatora/dialogów, które na
   części platform wcześniej mogły odziedziczyć jasny kolor motywu systemowego.
 - Stabilizuje smoke testy CLI na Windows/Linux, sprawdzając wpis konsolowy przez metadane i wymuszając UTF-8 w procesach potomnych.
