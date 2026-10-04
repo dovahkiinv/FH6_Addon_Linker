@@ -5,21 +5,22 @@ from __future__ import annotations
 from collections.abc import Sequence
 from typing import Any
 
+from ..i18n import translate
 from ..report import OperationReport, PlannedAction
 from .theme import COLORS
 
-_ACTION_LABELS = {
-    "create_link": "Utwórz link",
-    "repair_link": "Napraw link",
-    "force_replace": "Zastąp link innego moda",
-    "already_enabled": "Już włączony",
-    "remove_link_restore_backup": "Usuń link i przywróć oryginał",
-    "remove_added_file": "Usuń dodany plik",
-    "restore_missing_target": "Przywróć brakujący oryginał",
-    "already_missing": "Plik już usunięty",
-    "preserve_foreign_file": "Pozostaw obcy plik bez zmian",
-    "already_disabled": "Już wyłączony",
-    "verify": "Sprawdź plik",
+_ACTION_KEYS = {
+    "create_link": "plan_action_create",
+    "repair_link": "plan_action_repair",
+    "force_replace": "plan_action_force",
+    "already_enabled": "plan_action_already_enabled",
+    "remove_link_restore_backup": "plan_action_restore_backup",
+    "remove_added_file": "plan_action_remove_added",
+    "restore_missing_target": "plan_action_restore_missing",
+    "already_missing": "plan_action_already_missing",
+    "preserve_foreign_file": "plan_action_preserve_foreign",
+    "already_disabled": "plan_action_already_disabled",
+    "verify": "plan_action_verify",
 }
 
 
@@ -33,11 +34,13 @@ class PlanDialog:
         reports: Sequence[OperationReport],
         *,
         allow_conflicts: bool = False,
+        language: str = "pl",
     ) -> None:
         import tkinter as tk
         from tkinter import ttk
 
         self.tk = tk
+        self.language = language
         self.approved = False
         self.window = tk.Toplevel(parent)
         self.window.title(title)
@@ -66,7 +69,7 @@ class PlanDialog:
         summary.columnconfigure(0, weight=1)
         ttk.Label(
             summary,
-            text=f"Plan obejmuje {len(actions)} zmian w plikach.",
+            text=translate(language, "plan_summary", count=len(actions)),
             font=("Segoe UI Semibold", 12),
         ).grid(row=0, column=0, sticky="w")
         deployment_actions = [
@@ -77,18 +80,20 @@ class PlanDialog:
         if deployment_actions:
             originals = sum(action.backup is not None for action in deployment_actions)
             new_targets = len(deployment_actions) - originals
-            detail = (
-                f"Kopie istniejących oryginałów: {originals} · "
-                f"nowe ścieżki bez oryginału: {new_targets}."
+            detail = translate(
+                language,
+                "plan_original_counts",
+                backups=originals,
+                new=new_targets,
             )
         else:
-            detail = "Przed wykonaniem sprawdź listę operacji i ewentualne ostrzeżenia."
+            detail = translate(language, "plan_review_hint")
         ttk.Label(summary, text=detail, style="Subtitle.TLabel").grid(
             row=1, column=0, sticky="w", pady=(4, 0)
         )
         ttk.Label(
             summary,
-            text="Nic nie zostanie zmienione, dopóki nie zatwierdzisz tego planu.",
+            text=translate(language, "plan_no_changes"),
             style="Subtitle.TLabel",
         ).grid(row=2, column=0, sticky="w", pady=(2, 0))
 
@@ -123,17 +128,18 @@ class PlanDialog:
         if blocked:
             ttk.Label(
                 buttons,
-                text=(
-                    "Usuń błędy/konflikty i ponów plan. Konflikty nie są nadpisywane."
+                text=translate(
+                    language,
+                    "plan_blocked"
                     if errors or (conflicts and not allow_conflicts)
-                    else "Brak zmian do wykonania."
+                    else "plan_nothing",
                 ),
                 foreground=COLORS["danger"],
             ).pack(side="left", fill="x", expand=True)
-        ttk.Button(buttons, text="Anuluj", command=self._cancel).pack(side="right")
+        ttk.Button(buttons, text=translate(language, "plan_cancel"), command=self._cancel).pack(side="right")
         self.apply_button = ttk.Button(
             buttons,
-            text="Zastosuj plan",
+            text=translate(language, "plan_apply"),
             style="Accent.TButton",
             command=self._approve,
             state="disabled" if blocked else "normal",
@@ -156,31 +162,41 @@ class PlanDialog:
         conflicts: Sequence[str],
         errors: Sequence[str],
     ) -> None:
+        operation_keys = {
+            "enable": "plan_operation_enable",
+            "disable": "plan_operation_disable",
+            "restore": "plan_operation_restore",
+            "repair": "plan_operation_repair",
+            "verify": "plan_operation_verify",
+        }
         for report in reports:
-            self.text.insert("end", f"OPERACJA: {report.operation}\n")
+            operation_key = operation_keys.get(report.operation.casefold())
+            operation = translate(self.language, operation_key) if operation_key else report.operation
+            self.text.insert("end", f"{operation.upper()}\n")
         if actions:
-            self.text.insert("end", "\nPLAN PLIKÓW\n")
+            self.text.insert("end", f"\n{translate(self.language, 'plan_files_heading')}\n")
             for action in actions:
-                label = _ACTION_LABELS.get(action.action, action.action)
+                action_key = _ACTION_KEYS.get(action.action)
+                label = translate(self.language, action_key) if action_key else action.action
                 line = f"• {label}: {action.mod_name}"
                 if action.file:
                     line += f" — {action.file} ({action.size:,} B)"
                 if action.source:
-                    line += f"\n  Źródło: {action.source}"
+                    line += f"\n  {translate(self.language, 'plan_source')}: {action.source}"
                 if action.target:
-                    line += f"\n  Cel: {action.target}"
+                    line += f"\n  {translate(self.language, 'plan_target')}: {action.target}"
                 if action.backup:
-                    line += f"\n  Kopia oryginału: {action.backup}"
+                    line += f"\n  {translate(self.language, 'plan_backup')}: {action.backup}"
                 if action.note:
                     line += f"\n  {action.note}"
                 self.text.insert("end", line + "\n")
-        for heading, items in (
-            ("OSTRZEŻENIA", warnings),
-            ("KONFLIKTY (pozostaną bez zmian)", conflicts),
-            ("BŁĘDY", errors),
+        for heading_key, items in (
+            ("plan_warnings_heading", warnings),
+            ("plan_conflicts_heading", conflicts),
+            ("plan_errors_heading", errors),
         ):
             if items:
-                self.text.insert("end", f"\n{heading}\n")
+                self.text.insert("end", f"\n{translate(self.language, heading_key)}\n")
                 for item in items:
                     self.text.insert("end", f"• {item}\n")
 
@@ -193,16 +209,13 @@ class PlanDialog:
         self.window.destroy()
 
 
-def show_about(parent: Any, version: str) -> None:
+def show_about(parent: Any, version: str, *, language: str = "pl") -> None:
     """Pokazuje wersję i zastrzeżenia dotyczące modyfikowania gry."""
     from tkinter import messagebox
 
     messagebox.showinfo(
-        "O aplikacji",
-        f"FH6 Addon Linker {version}\n\n"
-        "Narzędzie społecznościowe, niezwiązane z Playground Games, Xbox ani Microsoft.\n\n"
-        "Modyfikowanie plików gry może naruszać regulamin i grozić banem. "
-        "Aplikacja nie gwarantuje bezpieczeństwa konta ani modów.",
+        translate(language, "about_title"),
+        translate(language, "about_body", version=version),
         parent=parent,
     )
 

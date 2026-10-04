@@ -16,6 +16,7 @@ from fh6linker.gui.app import (
 from fh6linker.gui.dialogs import PlanDialog
 from fh6linker.gui.theme import COLORS, configure_theme
 from fh6linker.gui.wizard import SetupWizard, deployment_paths_changed
+from fh6linker.i18n import load_language, normalize_language, save_language, translate
 from fh6linker.report import ModStatus, OperationReport, PlannedAction, StatusReport
 from fh6linker.scanner import scan_library
 from fh6linker.state import AppConfig
@@ -189,6 +190,14 @@ def test_gui_windows_construct_when_tk_is_available(fake_project: FakeProject) -
         app = FH6LinkerApp(root, fake_project.engine)
         assert app.tree.winfo_exists()
         assert app.empty_state.winfo_exists()
+        assert app.enable_all_button.winfo_exists()
+        assert app.language_combo.winfo_exists()
+        assert len(app._folder_open_buttons) == 3
+        app._set_language("en")
+        assert app.language_var.get() == "English"
+        assert app.enable_all_button.cget("text") == "Enable all"
+        assert app._display_status("WŁĄCZONY") == "ENABLED"
+        app._set_language("pl")
         app._render_tree()
         assert "mediaoverride" in app.empty_state.cget("text")
         assert app.visible_button.instate(["disabled"])
@@ -219,6 +228,57 @@ def test_gui_windows_construct_when_tk_is_available(fake_project: FakeProject) -
         dialog.window.destroy()
     finally:
         root.destroy()
+
+
+def test_ui_language_can_be_saved_and_reloaded(tmp_path: Path) -> None:
+    config_dir = tmp_path / "app-config"
+
+    assert load_language(config_dir) == "pl"
+    assert translate("en", "action_enable_all") == "Enable all"
+    assert normalize_language("English") == "en"
+    assert normalize_language("unknown") == "pl"
+
+    save_language(config_dir, "en")
+    assert load_language(config_dir) == "en"
+    save_language(config_dir, "Polski")
+    assert load_language(config_dir) == "pl"
+
+
+def test_enable_all_plans_every_valid_disabled_mod_only() -> None:
+    class EngineStub:
+        calls: list[tuple[list[str], bool]]
+
+        def __init__(self) -> None:
+            self.calls = []
+
+        def enable(self, names: list[str], *, dry_run: bool = False) -> str:
+            self.calls.append((list(names), dry_run))
+            return "report"
+
+    app = object.__new__(FH6LinkerApp)
+    app.language = "en"
+    app._available_mod_ids = {"Audio/Existing", "Audio/New B", "Audio/New A"}
+    app._active_mod_ids = {"Audio/Existing"}
+    app.engine = EngineStub()
+    plans: list[tuple[str, object, object, bool]] = []
+
+    def record_plan(title: str, plan: object, execute: object, *, allow_conflicts: bool) -> None:
+        plans.append((title, plan, execute, allow_conflicts))
+
+    app._plan_then_confirm = record_plan
+    app.enable_all()
+
+    assert len(plans) == 1
+    title, plan, execute, allow_conflicts = plans[0]
+    assert title == "Enable all mods"
+    assert allow_conflicts is False
+    assert callable(plan) and callable(execute)
+    assert plan() == ["report"]
+    assert execute() == ["report"]
+    assert app.engine.calls == [
+        (["Audio/New A", "Audio/New B"], True),
+        (["Audio/New A", "Audio/New B"], False),
+    ]
 
 
 def _make_library(root: Path) -> Path:

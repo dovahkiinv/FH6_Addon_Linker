@@ -5,6 +5,7 @@ from __future__ import annotations
 from pathlib import Path
 from typing import Any, Callable
 
+from ..i18n import translate
 from ..state import AppConfig, StateError
 from .theme import COLORS
 
@@ -43,6 +44,8 @@ class SetupWizard:
         parent: Any,
         engine: Any,
         on_saved: Callable[[], None] | None = None,
+        *,
+        language: str = "pl",
     ) -> None:
         import tkinter as tk
         from tkinter import filedialog, messagebox, ttk
@@ -53,6 +56,7 @@ class SetupWizard:
         self.ttk = ttk
         self.engine = engine
         self.on_saved = on_saved
+        self.language = language
         self.saved = False
         self.detected_paths: dict[str, Path] = {}
 
@@ -82,7 +86,7 @@ class SetupWizard:
         self.detected_var = tk.StringVar(master=parent, value="")
 
         self.window = tk.Toplevel(parent)
-        self.window.title("Konfiguracja FH6 Addon Linker")
+        self.window.title(self._t("wizard_title"))
         self.window.transient(parent)
         self.window.configure(background=COLORS["background"])
         self.window.geometry("720x570")
@@ -97,15 +101,12 @@ class SetupWizard:
         outer.columnconfigure(0, weight=1)
         ttk.Label(
             outer,
-            text="Przygotuj bibliotekę modów",
+            text=self._t("wizard_heading"),
             font=("Segoe UI Semibold", 18),
         ).grid(row=0, column=0, sticky="w")
         ttk.Label(
             outer,
-            text=(
-                "Wskaż folder instalacji FH6 i osobny katalog biblioteki. "
-                "Przed podmianą aplikacja kopiuje oryginał pliku z dokładnej ścieżki docelowej."
-            ),
+            text=self._t("wizard_intro"),
             wraplength=640,
             justify="left",
         ).grid(row=1, column=0, sticky="w", pady=(8, 18))
@@ -113,44 +114,38 @@ class SetupWizard:
         form = ttk.Frame(outer)
         form.grid(row=2, column=0, sticky="ew")
         form.columnconfigure(1, weight=1)
-        ttk.Label(form, text="Folder gry").grid(row=0, column=0, sticky="w", pady=7)
+        ttk.Label(form, text=self._t("wizard_game")).grid(row=0, column=0, sticky="w", pady=7)
         ttk.Entry(form, textvariable=self.game_var).grid(
             row=0, column=1, sticky="ew", padx=(12, 8), pady=7
         )
-        ttk.Button(form, text="Przeglądaj…", command=self._browse_game).grid(
+        ttk.Button(form, text=self._t("wizard_browse"), command=self._browse_game).grid(
             row=0, column=2, sticky="ew", pady=7
         )
 
-        ttk.Label(form, text="Biblioteka modów").grid(row=1, column=0, sticky="w", pady=7)
+        ttk.Label(form, text=self._t("wizard_library")).grid(row=1, column=0, sticky="w", pady=7)
         ttk.Entry(form, textvariable=self.library_var).grid(
             row=1, column=1, sticky="ew", padx=(12, 8), pady=7
         )
-        ttk.Button(form, text="Przeglądaj…", command=self._browse_library).grid(
+        ttk.Button(form, text=self._t("wizard_browse"), command=self._browse_library).grid(
             row=1, column=2, sticky="ew", pady=7
         )
 
-        ttk.Label(form, text="Folder kopii oryginałów").grid(row=2, column=0, sticky="w", pady=7)
+        ttk.Label(form, text=self._t("wizard_backup")).grid(row=2, column=0, sticky="w", pady=7)
         ttk.Entry(form, textvariable=self.backup_var).grid(
             row=2, column=1, sticky="ew", padx=(12, 8), pady=7
         )
-        ttk.Button(form, text="Przeglądaj…", command=self._browse_backup).grid(
+        ttk.Button(form, text=self._t("wizard_browse"), command=self._browse_backup).grid(
             row=2, column=2, sticky="ew", pady=7
         )
         ttk.Label(
             form,
-            text=(
-                "Kopia obejmuje wyłącznie istniejący plik pod dokładną ścieżką moda — nie całą grę "
-                "ani odpowiednik media/mediapc. Gdy oryginał jest tylko pod drugim korzeniem, "
-                "aplikacja zatrzyma wdrożenie zamiast tworzyć równoległą ścieżkę. Nowe pliki są "
-                "usuwane przy przywracaniu, jeśli nadal należą do aplikacji. Puste pole użyje "
-                "domyślnego katalogu aplikacji."
-            ),
+            text=self._t("wizard_backup_note"),
             foreground=COLORS["muted"],
             wraplength=430,
             justify="left",
         ).grid(row=3, column=1, sticky="w", padx=(12, 0), pady=(0, 8))
 
-        ttk.Label(form, text="Metoda linkowania").grid(row=4, column=0, sticky="w", pady=7)
+        ttk.Label(form, text=self._t("wizard_method")).grid(row=4, column=0, sticky="w", pady=7)
         method = ttk.Combobox(
             form,
             textvariable=self.method_var,
@@ -161,14 +156,14 @@ class SetupWizard:
         method.grid(row=4, column=1, sticky="w", padx=(12, 8), pady=7)
         ttk.Label(
             form,
-            text="auto: hardlink → symlink → kopia",
+            text=self._t("wizard_method_help"),
             foreground=COLORS["muted"],
         ).grid(row=4, column=2, sticky="w", pady=7)
 
         detect = ttk.Frame(outer)
         detect.grid(row=3, column=0, sticky="ew", pady=(18, 0))
         detect.columnconfigure(1, weight=1)
-        ttk.Button(detect, text="Wykryj instalacje gry", command=self._detect_game).grid(
+        ttk.Button(detect, text=self._t("wizard_detect"), command=self._detect_game).grid(
             row=0, column=0, sticky="w"
         )
         self.detected_combo = ttk.Combobox(
@@ -180,10 +175,7 @@ class SetupWizard:
         self.detected_combo.bind("<<ComboboxSelected>>", self._select_detected)
         ttk.Label(
             outer,
-            text=(
-                "Ważne: biblioteka nie może znajdować się wewnątrz folderu gry. "
-                "Przed wdrażaniem modów zamknij FH6. Mody mogą naruszać regulamin i grozić banem."
-            ),
+            text=self._t("wizard_warning"),
             wraplength=640,
             justify="left",
             foreground=COLORS["warning"],
@@ -191,10 +183,10 @@ class SetupWizard:
 
         buttons = ttk.Frame(outer)
         buttons.grid(row=5, column=0, sticky="ew")
-        ttk.Button(buttons, text="Anuluj", command=self._cancel).pack(side="right")
+        ttk.Button(buttons, text=self._t("wizard_cancel"), command=self._cancel).pack(side="right")
         ttk.Button(
             buttons,
-            text="Zapisz konfigurację",
+            text=self._t("wizard_save"),
             style="Accent.TButton",
             command=self._save,
         ).pack(side="right", padx=(0, 8))
@@ -205,7 +197,7 @@ class SetupWizard:
     def _browse_game(self) -> None:
         selected = self.filedialog.askdirectory(
             parent=self.window,
-            title="Wybierz folder instalacji Forza Horizon 6",
+            title=self._t("wizard_game_picker"),
             initialdir=self.game_var.get() or str(Path.home()),
         )
         if selected:
@@ -214,7 +206,7 @@ class SetupWizard:
     def _browse_library(self) -> None:
         selected = self.filedialog.askdirectory(
             parent=self.window,
-            title="Wybierz bibliotekę modów",
+            title=self._t("wizard_library_picker"),
             initialdir=self.library_var.get() or str(Path.home()),
             mustexist=False,
         )
@@ -224,7 +216,7 @@ class SetupWizard:
     def _browse_backup(self) -> None:
         selected = self.filedialog.askdirectory(
             parent=self.window,
-            title="Wybierz katalog backupów",
+            title=self._t("wizard_backup_picker"),
             initialdir=self.backup_var.get() or str(Path.home()),
             mustexist=False,
         )
@@ -237,8 +229,8 @@ class SetupWizard:
         candidates = detect_game_installs()
         if not candidates:
             self.messagebox.showinfo(
-                "Nie wykryto gry",
-                "Nie znaleziono instalacji FH6. Wskaż folder ręcznie przyciskiem Przeglądaj.",
+                self._t("wizard_detect_none_title"),
+                self._t("wizard_detect_none_body"),
                 parent=self.window,
             )
             return
@@ -252,8 +244,8 @@ class SetupWizard:
         self.game_var.set(str(self.detected_paths[values[0]]))
         if len(values) > 1:
             self.messagebox.showinfo(
-                "Wykryto kilka instalacji",
-                "Wybrano pierwszą z listy. Możesz wskazać inną w polu obok przycisku.",
+                self._t("wizard_detect_multiple_title"),
+                self._t("wizard_detect_multiple_body"),
                 parent=self.window,
             )
 
@@ -269,8 +261,8 @@ class SetupWizard:
         library_text = self.library_var.get().strip()
         if not game_text or not library_text:
             self.messagebox.showerror(
-                "Brak ścieżki",
-                "Wskaż folder gry i bibliotekę modów.",
+                self._t("wizard_no_paths_title"),
+                self._t("wizard_no_paths_body"),
                 parent=self.window,
             )
             return
@@ -279,9 +271,8 @@ class SetupWizard:
             state = self.engine.store.load_state()
         except (OSError, StateError) as exc:
             self.messagebox.showerror(
-                "Nie można sprawdzić wdrożeń",
-                f"Nie odczytano state.json: {exc}\n\n"
-                "Konfiguracji nie zapisano, aby nie utracić możliwości przywrócenia plików.",
+                self._t("wizard_state_error_title"),
+                self._t("wizard_state_error_body", error=exc),
                 parent=self.window,
             )
             return
@@ -298,10 +289,8 @@ class SetupWizard:
             if len(active_mods) > 5:
                 names += f" i {len(active_mods) - 5} innych"
             self.messagebox.showerror(
-                "Najpierw przywróć wdrożone pliki",
-                "Nie zmieniono folderu gry, biblioteki ani backupów, ponieważ istnieją "
-                f"pliki wdrożone ({names}). Użyj najpierw przycisku „Przywróć oryginały” "
-                "i ponów konfigurację.",
+                self._t("wizard_active_title"),
+                self._t("wizard_active_body", mods=names),
                 parent=self.window,
             )
             return
@@ -309,8 +298,8 @@ class SetupWizard:
         library_path = normalize_path(library_text)
         if not library_path.exists():
             if not self.messagebox.askyesno(
-                "Utworzyć bibliotekę?",
-                f"Folder nie istnieje:\n{library_path}\n\nUtworzyć go teraz?",
+                self._t("wizard_create_library_title"),
+                self._t("wizard_create_library_body", path=library_path),
                 parent=self.window,
             ):
                 return
@@ -323,7 +312,11 @@ class SetupWizard:
                     raise ValueError("Biblioteka nie może pokrywać się z folderem gry.")
                 library_path.mkdir(parents=True, exist_ok=True)
             except (OSError, ValueError) as exc:
-                self.messagebox.showerror("Nie można utworzyć biblioteki", str(exc), parent=self.window)
+                self.messagebox.showerror(
+                    self._t("wizard_create_library_error"),
+                    str(exc),
+                    parent=self.window,
+                )
                 return
 
         try:
@@ -335,8 +328,8 @@ class SetupWizard:
             )
         except Exception as exc:
             self.messagebox.showerror(
-                "Nie zapisano konfiguracji",
-                f"{exc}\n\nSprawdź ścieżki i spróbuj ponownie.",
+                self._t("wizard_config_error_title"),
+                self._t("wizard_config_error_body", error=exc),
                 parent=self.window,
             )
             return
@@ -345,6 +338,9 @@ class SetupWizard:
         if self.on_saved is not None:
             self.on_saved()
         self.window.destroy()
+
+    def _t(self, key: str, **values: Any) -> str:
+        return translate(self.language, key, **values)
 
     def _cancel(self) -> None:
         self.saved = False

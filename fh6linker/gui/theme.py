@@ -185,6 +185,26 @@ def configure_theme(root: Any, ttk_module: Any | None = None) -> None:
         foreground=[("disabled", "#A4B7B1")],
     )
     style.configure(
+        "Compact.TButton",
+        background=COLORS["surface_alt"],
+        foreground=COLORS["text"],
+        font=("Segoe UI Semibold", 8),
+        padding=(7, 5),
+        borderwidth=1,
+        bordercolor=COLORS["border"],
+        focuscolor=COLORS["accent"],
+        relief="flat",
+    )
+    style.map(
+        "Compact.TButton",
+        background=[
+            ("disabled", "#171B21"),
+            ("pressed", COLORS["surface_hover"]),
+            ("active", COLORS["surface_hover"]),
+        ],
+        foreground=[("disabled", "#687382")],
+    )
+    style.configure(
         "Danger.TButton",
         background=COLORS["danger"],
         foreground="#FFFFFF",

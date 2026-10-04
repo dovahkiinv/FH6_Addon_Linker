@@ -12,6 +12,9 @@ na [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) i wersjonowaniu
   ani listy plików wdrażanych do gry.
 - Odświeżony layout GUI: prawie czarna paleta, karty ścieżek i statystyk,
   czytelniejsze akcje i większa przestrzeń na listę modów.
+- Przyciski „Otwórz folder” przy ścieżkach gry, biblioteki i kopii, akcja
+  „Włącz wszystkie” z planem zatwierdzenia oraz przełącznik Polski/English
+  zapamiętywany między uruchomieniami.
 - Konfiguracja PyInstaller one-file/windowed, zależność budowania w
   `requirements-build.txt`, skrypt `scripts/build_exe.ps1` i workflow GitHub
   Actions budujący Windowsowy EXE oraz portable ZIP.

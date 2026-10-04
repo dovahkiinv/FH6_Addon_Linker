@@ -18,10 +18,13 @@ py -3 -m fh6linker gui
 Przy pierwszym uruchomieniu kreator poprosi o folder gry i bibliotekę modów.
 Możesz utworzyć nową bibliotekę bezpośrednio w kreatorze. Użyj przycisku
 **Odśwież**, aby przeskanować bibliotekę; zaznacz mody i wybierz
-**Zastosuj zaznaczone**. Każda modyfikująca operacja pokazuje plan, który trzeba
-zatwierdzić przed zmianą plików. **Tryb online** przywraca kopie oryginałów
-plików zarządzanych przez aplikację; pliki obce lub zmienione pozostają
-nietknięte. W razie potrzeby użyj weryfikacji plików Xbox/Steam.
+**Zastosuj wybrane** albo użyj **Włącz wszystkie**. Każda modyfikująca operacja
+pokazuje plan, który trzeba zatwierdzić przed zmianą plików. Przy każdej ścieżce
+użyj **Otwórz folder**, aby przejść do folderu gry, biblioteki lub kopii. Wybór
+**Polski / English** znajduje się w prawym górnym rogu i jest zapamiętywany.
+**Tryb online** przywraca kopie oryginałów plików zarządzanych przez aplikację;
+pliki obce lub zmienione pozostają nietknięte. W razie potrzeby użyj weryfikacji
+plików Xbox/Steam.
 
 ## Samodzielny `.exe` dla Windows
 
